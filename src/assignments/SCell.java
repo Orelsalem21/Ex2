@@ -66,9 +66,11 @@ public class SCell implements Cell {
             return null;
         }
         String expr = formula.substring(1).trim();
+        System.out.println("Computing formula: " + formula + ", extracted expression: " + expr);
 
         // אם זו הפניה ישירה לתא
         if (expr.matches("[A-Z][0-9]+")) {
+            System.out.println("Direct cell reference detected: " + expr);
             return getCellValue(expr, sheet, visitedCells);
         }
 
@@ -88,7 +90,8 @@ public class SCell implements Cell {
     }
 
     private static Double evaluateExpression(String expr, Sheet sheet, Set<String> visitedCells) {
-        // בדיקה אם יש רק הפניה לתא
+        System.out.println("Evaluating expression: " + expr);
+
         if (expr.matches("[A-Z][0-9]+")) {
             return getCellValue(expr, sheet, visitedCells);
         }
@@ -126,6 +129,7 @@ public class SCell implements Cell {
                 }
                 i--;
                 String cellRef = sb.toString();
+                System.out.println("Detected cell reference during expression evaluation: " + cellRef);
                 Double cellValue = getCellValue(cellRef, sheet, visitedCells);
                 if (cellValue == null) return null;
                 values.push(cellValue);
@@ -136,7 +140,9 @@ public class SCell implements Cell {
             values.push(applyOp(ops.pop(), values.pop(), values.pop()));
         }
 
-        return values.isEmpty() ? null : values.pop();
+        Double result = values.isEmpty() ? null : values.pop();
+        System.out.println("Expression result: " + result);
+        return result;
     }
 
     private static int precedence(char op) {
@@ -168,20 +174,26 @@ public class SCell implements Cell {
 
     private static Double getCellValue(String cellRef, Sheet sheet, Set<String> visitedCells) {
         int col = cellRef.charAt(0) - 'A';
-        int row = Integer.parseInt(cellRef.substring(1)) - 1;
+        int row = Integer.parseInt(cellRef.substring(1)) ;
+
+        System.out.println("Getting value for cell reference: " + cellRef + " (Col: " + col + ", Row: " + row + ")");
         String value = sheet.value(col, row);
 
-        // בדוק אם הערך קיים ותקין
+        System.out.println("Value retrieved from sheet: " + value);
+
         if (value != null && !value.isEmpty()) {
             try {
-                return Double.parseDouble(value);
+                Double numericValue = Double.parseDouble(value);
+                System.out.println("Numeric value parsed: " + numericValue);
+                return numericValue;
             } catch (NumberFormatException e) {
-                // אם לא מספר, בדוק אם זו נוסחה
                 if (isFormula(value)) {
+                    System.out.println("Nested formula detected: " + value);
                     return computeForm(value, sheet, visitedCells);
                 }
             }
         }
+        System.out.println("Returning null for cell reference: " + cellRef);
         return null;
     }
 }
