@@ -67,6 +67,17 @@ public class SCell implements Cell {
         }
         String expr = formula.substring(1).trim();
 
+        // אם זו הפניה ישירה לתא
+        if (expr.matches("[A-Z][0-9]+")) {
+            return getCellValue(expr, sheet, visitedCells);
+        }
+
+        try {
+            return Double.parseDouble(expr);
+        } catch (NumberFormatException e) {
+            // המשך לבדיקות הקיימות
+        }
+
         if (expr.startsWith("*")) {
             String innerExpr = expr.substring(1);
             Double innerResult = evaluateExpression(innerExpr, sheet, visitedCells);
@@ -77,6 +88,11 @@ public class SCell implements Cell {
     }
 
     private static Double evaluateExpression(String expr, Sheet sheet, Set<String> visitedCells) {
+        // בדיקה אם יש רק הפניה לתא
+        if (expr.matches("[A-Z][0-9]+")) {
+            return getCellValue(expr, sheet, visitedCells);
+        }
+
         Stack<Double> values = new Stack<>();
         Stack<Character> ops = new Stack<>();
 
@@ -151,25 +167,21 @@ public class SCell implements Cell {
     }
 
     private static Double getCellValue(String cellRef, Sheet sheet, Set<String> visitedCells) {
-        if (visitedCells.contains(cellRef)) {
-            return null; // או אפשר להחזיר "err_form" אם מעדיף ערך שגיאה מותאם
-        }
-        visitedCells.add(cellRef);
         int col = cellRef.charAt(0) - 'A';
         int row = Integer.parseInt(cellRef.substring(1)) - 1;
         String value = sheet.value(col, row);
 
-        if (isFormula(value)) {
-            Double result = computeForm(value, sheet, visitedCells);
-            visitedCells.remove(cellRef);
-            return result != null ? result : null;
+        // בדוק אם הערך קיים ותקין
+        if (value != null && !value.isEmpty()) {
+            try {
+                return Double.parseDouble(value);
+            } catch (NumberFormatException e) {
+                // אם לא מספר, בדוק אם זו נוסחה
+                if (isFormula(value)) {
+                    return computeForm(value, sheet, visitedCells);
+                }
+            }
         }
-
-        visitedCells.remove(cellRef);
-        try {
-            return Double.parseDouble(value);
-        } catch (NumberFormatException e) {
-            return null;
-        }
+        return null;
     }
 }
