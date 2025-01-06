@@ -138,17 +138,21 @@ public class SCell implements Cell {
     private static Double applyOp(char op, Double b, Double a) {
         if (a == null || b == null) return null;
         switch (op) {
-            case '+': return a + b;
-            case '-': return a - b;
-            case '*': return a * b;
-            case '/': return b != 0 ? a / b : null;
+            case '+':
+                return a + b;
+            case '-':
+                return a - b;
+            case '*':
+                return a * b;
+            case '/':
+                return b != 0 ? a / b : null;
         }
         return null;
     }
 
     private static Double getCellValue(String cellRef, Sheet sheet, Set<String> visitedCells) {
         if (visitedCells.contains(cellRef)) {
-            return Double.NaN;
+            return null; // או אפשר להחזיר "err_form" אם מעדיף ערך שגיאה מותאם
         }
         visitedCells.add(cellRef);
         int col = cellRef.charAt(0) - 'A';
@@ -158,7 +162,7 @@ public class SCell implements Cell {
         if (isFormula(value)) {
             Double result = computeForm(value, sheet, visitedCells);
             visitedCells.remove(cellRef);
-            return result;
+            return result != null ? result : null;
         }
 
         visitedCells.remove(cellRef);
