@@ -1,7 +1,5 @@
 package assignments;
 
-import assignments.Cell;
-
 import java.io.IOException;
 
 /**
@@ -77,8 +75,10 @@ public interface Sheet {
 
     /**
      * Evaluates (computes) all the values of all the cells in this spreadsheet.
+     *
+     * @return
      */
-    public void eval();
+    public String[][] eval();
     /**
      *  Computes a 2D array of the same dimension as this SpreadSheet, each entry holds its dependency depth.
      *  if a cell is not dependent on any other cell its depth is 0.

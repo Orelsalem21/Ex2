@@ -1,10 +1,9 @@
 package assignments;
 
 import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
 
-/**
- * Represents the spreadsheet and its operations. Updated to compute formulas.
- */
 public class Ex2Sheet implements Sheet {
     private Cell[][] table;
 
@@ -12,10 +11,9 @@ public class Ex2Sheet implements Sheet {
         table = new Cell[x][y];
         for (int i = 0; i < x; i++) {
             for (int j = 0; j < y; j++) {
-                table[i][j] = new SCell(Ex2Utils.EMPTY_CELL); // Initialize each cell as an empty SCell
+                table[i][j] = new SCell(Ex2Utils.EMPTY_CELL);
             }
         }
-        eval();
     }
 
     public Ex2Sheet() {
@@ -33,9 +31,9 @@ public class Ex2Sheet implements Sheet {
     }
 
     @Override
-    public Cell get(String cords) {
-        int x = xCell(cords);
-        int y = yCell(cords);
+    public Cell get(String cellName) {
+        int x = xCell(cellName);
+        int y = yCell(cellName);
         return isIn(x, y) ? table[x][y] : null;
     }
 
@@ -51,55 +49,113 @@ public class Ex2Sheet implements Sheet {
 
     @Override
     public void set(int x, int y, String s) {
-        SCell c = new SCell(s);
-        table[x][y] = c;
+        table[x][y] = new SCell(s);
     }
 
     @Override
-    public void eval() {
-        // Placeholder for evaluating all cells
+    public String[][] eval() {
+        String[][] result = new String[height()][width()];
+        for (int y = 0; y < height(); y++) {
+            for (int x = 0; x < width(); x++) {
+                result[y][x] = eval(x, y);
+            }
+        }
+        return result;
     }
 
     @Override
-    public boolean isIn(int xx, int yy) {
-        return xx >= 0 && yy >= 0 && xx < width() && yy < height();
+    public boolean isIn(int x, int y) {
+        return x >= 0 && x < width() && y >= 0 && y < height();
     }
 
     @Override
     public int[][] depth() {
-        int[][] ans = new int[width()][height()];
-        return ans;
-    }
-
-    @Override
-    public void load(String fileName) throws IOException {
-        // Implement load logic
-    }
-
-    @Override
-    public void save(String fileName) throws IOException {
-        // Implement save logic
+        int[][] depths = new int[width()][height()];
+        for (int x = 0; x < width(); x++) {
+            for (int y = 0; y < height(); y++) {
+                depths[x][y] = calculateDepth(x, y);
+            }
+        }
+        return depths;
     }
 
     @Override
     public String eval(int x, int y) {
         Cell cell = get(x, y);
-        if (cell == null) return Ex2Utils.EMPTY_CELL;
+        if (cell == null) {
+            return Ex2Utils.EMPTY_CELL;
+        }
 
         if (cell.getType() == Ex2Utils.FORM) {
-            Double result = SCell.computeForm(cell.getData());
-            return result != null ? result.toString() : Ex2Utils.ERR_FORM;
+            Set<String> visitedCells = new HashSet<>();
+            return evaluateFormula(cell.getData(), visitedCells, x, y);
         }
         return cell.getData();
     }
 
+    private int calculateDepth(int x, int y) {
+        Cell cell = get(x, y);
+        if (cell.getType() != Ex2Utils.FORM) {
+            return 0;
+        }
+        Set<String> visitedCells = new HashSet<>();
+        return calculateFormulaDepth(cell.getData(), visitedCells, x, y);
+    }
+
+    private int calculateFormulaDepth(String formula, Set<String> visitedCells, int x, int y) {
+        String cellName = (char) ('A' + x) + String.valueOf(y + 1);
+        if (visitedCells.contains(cellName)) {
+            return 0;
+        }
+        visitedCells.add(cellName);
+
+        int maxDepth = 0;
+        // Add logic to analyze the formula and find the maximum depth
+        visitedCells.remove(cellName);
+        return maxDepth + 1;
+    }
+
+    @Override
+    public void load(String fileName) throws IOException {
+        // Implement load logic if needed
+    }
+
+    @Override
+    public void save(String fileName) throws IOException {
+        // Implement save logic if needed
+    }
+
+    private String evaluateFormula(String formula, Set<String> visitedCells, int x, int y) {
+        String cellName = (char) ('A' + x) + String.valueOf(y + 1);
+        if (visitedCells.contains(cellName)) {
+            return "Error: Circular Reference";
+        }
+        visitedCells.add(cellName);
+
+        try {
+            Double result = SCell.computeForm(formula, this, visitedCells);
+            if (result == null) {
+                return "ERR_FORM";
+            }
+            return result.toString();
+        } catch (Exception e) {
+            return "ERR_FORM";
+        } finally {
+            visitedCells.remove(cellName);
+        }
+    }
+
     private int xCell(String cellName) {
-        if (cellName.length() < 2) return -1;
+        if (cellName.length() < 2) {
+            return -1;
+        }
         return cellName.charAt(0) - 'A';
     }
 
     private int yCell(String cellName) {
-        if (cellName.length() < 2) return -1;
+        if (cellName.length() < 2) {
+            return -1;
+        }
         return Integer.parseInt(cellName.substring(1)) - 1;
     }
 }
