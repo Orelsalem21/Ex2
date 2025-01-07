@@ -1,6 +1,6 @@
 package assignments;
 
-import java.io.IOException;
+import java.io.*;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -169,27 +169,76 @@ public class Ex2Sheet implements Sheet {
     }
 
     /**
-     * Loads the spreadsheet data from a file.
-     * Placeholder method, to be implemented with file loading logic.
-     *
-     * @param fileName The name of the file to load data from.
-     * @throws IOException if an I/O error occurs during loading.
-     */
-    @Override
-    public void load(String fileName) throws IOException {
-        // Placeholder for load logic
-    }
-
-    /**
      * Saves the spreadsheet data to a file.
-     * Placeholder method, to be implemented with file saving logic.
      *
      * @param fileName The name of the file to save data to.
      * @throws IOException if an I/O error occurs during saving.
      */
     @Override
     public void save(String fileName) throws IOException {
-        // Placeholder for save logic
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(fileName))) {
+            for (int x = 0; x < width(); x++) {
+                for (int y = 0; y < height(); y++) {
+                    Cell cell = get(x, y);
+                    if (cell != null && !cell.getData().isEmpty()) {
+                        writer.write(x + "," + y + "," + cell.getData());
+                        writer.newLine();
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Loads the spreadsheet data from a file.
+     * Clears all existing data before loading new data.
+     *
+     * @param fileName The name of the file to load data from.
+     * @throws IOException if an I/O error occurs during loading.
+     */
+    @Override
+    public void load(String fileName) throws IOException {
+        // Clear all existing data first
+        clearAllCells();
+
+        try (BufferedReader reader = new BufferedReader(new FileReader(fileName))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                // Skip metadata or irrelevant lines
+                if (line.trim().isEmpty() || line.startsWith("I2CS")) {
+                    continue;
+                }
+
+                // Parse the line
+                String[] parts = line.split(",", 3);
+                if (parts.length == 3) {
+                    try {
+                        int x = Integer.parseInt(parts[0].trim());
+                        int y = Integer.parseInt(parts[1].trim());
+                        String value = parts[2].trim();
+
+                        // Set the value in the table
+                        if (isIn(x, y)) {
+                            set(x, y, value);
+                        }
+                    } catch (NumberFormatException e) {
+                        // Skip lines with invalid coordinates
+                        continue;
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Clears all cells in the spreadsheet.
+     */
+    private void clearAllCells() {
+        for (int x = 0; x < width(); x++) {
+            for (int y = 0; y < height(); y++) {
+                set(x, y, "");  // or null, depending on the specific implementation
+            }
+        }
     }
 
     // Private helper methods

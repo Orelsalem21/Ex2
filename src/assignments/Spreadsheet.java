@@ -1,6 +1,6 @@
 package assignments;
 
-import java.io.IOException;
+import java.io.*;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -133,7 +133,6 @@ public class Spreadsheet implements Sheet {
         }
         return cell.getData();
     }
-
     /**
      * Evaluates the entire spreadsheet and returns a 2D array of the evaluated values.
      *
@@ -165,29 +164,22 @@ public class Spreadsheet implements Sheet {
         }
         return depths;
     }
-
+    
     /**
-     * Loads the spreadsheet data from a file.
-     * Placeholder method, to be implemented with file loading logic.
+     * Placeholder for the save method, which is not implemented in this class.
+     * This method is handled and fully implemented in the Ex2Sheet class.
      *
-     * @param fileName The name of the file to load data from.
-     * @throws IOException if an I/O error occurs during loading.
-     */
-    @Override
-    public void load(String fileName) throws IOException {
-        // To be implemented
-    }
-
-    /**
-     * Saves the spreadsheet data to a file.
-     * Placeholder method, to be implemented with file saving logic.
-     *
-     * @param fileName The name of the file to save data to.
-     * @throws IOException if an I/O error occurs during saving.
+     * @param fileName The name of the file to save the spreadsheet data.
+     * @throws UnsupportedOperationException as this method is not supported in this class.
      */
     @Override
     public void save(String fileName) throws IOException {
-        // To be implemented
+        throw new UnsupportedOperationException("Not supported.");
+    }
+
+    @Override
+    public void load(String fileName) throws IOException {
+        throw new UnsupportedOperationException("Not supported.");
     }
 
     // Private helper methods

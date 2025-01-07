@@ -272,6 +272,9 @@ public class SCell implements Cell {
         int col = cellRef.charAt(0) - 'A';
         int row = Integer.parseInt(cellRef.substring(1));
         String value = sheet.value(col, row);
+        if (row < 1 || row > 99) {
+            throw new IllegalArgumentException("ERR_FORM Invalid cell reference:.");
+        }
 
         if (value != null && !value.isEmpty()) {
             try {
