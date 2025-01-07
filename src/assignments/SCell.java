@@ -151,10 +151,11 @@ public class SCell implements Cell {
             // Continue to parse further
         }
 
-        if (expr.startsWith("*")) {
+        // Check if the expression starts with a unary minus
+        if (expr.startsWith("-")) {
             String innerExpr = expr.substring(1);
             Double innerResult = evaluateExpression(innerExpr, sheet, visitedCells);
-            return innerResult != null ? Math.abs(innerResult) : null;
+            return innerResult != null ? -innerResult : null;
         }
 
         return evaluateExpression(expr, sheet, visitedCells);
