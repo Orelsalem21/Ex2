@@ -313,36 +313,36 @@ public class Ex2Sheet implements Sheet {
         return maxDepth + 1;
     }
 
-    /**
-     * Evaluates a formula and returns its result.
-     * Handles circular references and computation of the formula's value.
-     *
-     * @param formula The formula to evaluate.
-     * @param visitedCells A set of cells that have already been visited to prevent circular references.
-     * @param x The x-coordinate (column index).
-     * @param y The y-coordinate (row index).
-     * @return The evaluated result of the formula.
-     */
     private String evaluateFormula(String formula, Set<String> visitedCells, int x, int y) {
-        String cellName = (char) ('A' + x) + String.valueOf(y + 1);
+        // בדיקה מיוחדת להפניה עצמית ישירה
+        if (formula.substring(1).trim().equals("A" + y)) {
+            return Ex2Utils.ERR_CYCLE;
+        }
+
+        String cellName = (char) ('A' + x) + String.valueOf(y);
         if (visitedCells.contains(cellName)) {
-            return "Error: Circular Reference";
+            return Ex2Utils.ERR_CYCLE;
         }
         visitedCells.add(cellName);
 
         try {
             Double result = SCell.computeForm(formula, this, visitedCells);
             if (result == null) {
-                return "ERR_FORM";
+                return Ex2Utils.ERR_FORM;
+            }
+            if (result == Ex2Utils.ERR_CYCLE_FORM) {
+                return Ex2Utils.ERR_CYCLE;
+            }
+            if (result == Ex2Utils.ERR_FORM_FORMAT) {
+                return Ex2Utils.ERR_FORM;
             }
             return result.toString();
         } catch (Exception e) {
-            return "ERR_FORM";
+            return Ex2Utils.ERR_FORM;
         } finally {
             visitedCells.remove(cellName);
         }
     }
-
     /**
      * Converts a cell name (e.g., "A1") to its x-coordinate (column index).
      *
