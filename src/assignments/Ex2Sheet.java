@@ -272,12 +272,43 @@ public class Ex2Sheet implements Sheet {
     private int calculateFormulaDepth(String formula, Set<String> visitedCells, int x, int y) {
         String cellName = (char) ('A' + x) + String.valueOf(y + 1);
         if (visitedCells.contains(cellName)) {
-            return 0;
+            return -1; // Indicate circular reference
         }
         visitedCells.add(cellName);
 
         int maxDepth = 0;
-        // Add logic to analyze the formula and find the maximum depth
+        if (formula != null && formula.length() > 1) {
+            String expr = formula.substring(1).trim(); // Remove the '=' sign
+
+            // Look for cell references in the formula (e.g., A1, B2, etc.)
+            for (int i = 0; i < expr.length(); i++) {
+                if (Character.isLetter(expr.charAt(i)) && i + 1 < expr.length()) {
+                    StringBuilder cellRef = new StringBuilder();
+                    cellRef.append(expr.charAt(i));
+
+                    // Collect the number part of the cell reference
+                    while (i + 1 < expr.length() && Character.isDigit(expr.charAt(i + 1))) {
+                        cellRef.append(expr.charAt(++i));
+                    }
+
+                    String ref = cellRef.toString();
+                    if (ref.matches("[A-Z][0-9]+")) {
+                        int refX = ref.charAt(0) - 'A';
+                        int refY = Integer.parseInt(ref.substring(1)) - 1;
+
+                        if (isIn(refX, refY)) {
+                            Cell refCell = get(refX, refY);
+                            if (refCell != null && refCell.getType() == Ex2Utils.FORM) {
+                                int depth = calculateFormulaDepth(refCell.getData(), new HashSet<>(visitedCells), refX, refY);
+                                if (depth == -1) return -1; // Propagate circular reference error
+                                maxDepth = Math.max(maxDepth, depth);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         visitedCells.remove(cellName);
         return maxDepth + 1;
     }
