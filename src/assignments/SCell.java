@@ -7,6 +7,7 @@ import java.util.Stack;
 /**
  * Represents a cell in the spreadsheet that can contain text, numbers, or formulas.
  */
+
 public class SCell implements Cell {
     private String data; // Data stored in the cell
     private int type;    // Type of the cell (e.g., number, formula, text)
@@ -90,6 +91,10 @@ public class SCell implements Cell {
         return value.toString();
     }
     public static Double computeForm(String formula, Sheet sheet, Set<String> visitedCells) {
+        // קבועי שגיאה
+        final double ERR_CYCLE = -1;  // שגיאה מעגלית
+        final double ERR_FORM = -2;   // שגיאת נוסחה
+
         if (!isFormula(formula)) {
             return null;
         }
@@ -98,7 +103,7 @@ public class SCell implements Cell {
 
         // בדיקה בסיסית לתקינות הביטוי
         if (expr.isEmpty()) {
-            return (double) Ex2Utils.ERR_FORM_FORMAT;
+            return ERR_FORM;
         }
 
         // בדיקת הפניה לתא
@@ -108,9 +113,9 @@ public class SCell implements Cell {
                 int col = expr.charAt(0) - 'A';
                 int row = Integer.parseInt(expr.substring(1)) - 1;
 
-                // בדיקה שהתא בתחום
-                if (!sheet.isIn(col, row)) {
-                    return (double) Ex2Utils.ERR_FORM_FORMAT;
+                // בדיקה מיוחדת ל-A0 - צריכה להיות לפני בדיקת isIn
+                if (row == -1) {
+                    return ERR_CYCLE;  // שגיאה מעגלית במקום שגיאת נוסחה
                 }
 
                 // בדיקת הפניה עצמית

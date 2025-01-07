@@ -12,6 +12,7 @@ public class Spreadsheet implements Sheet {
     private int width;
     private int height;
 
+
     /**
      * Constructor to initialize the spreadsheet with the specified dimensions.
      *
@@ -218,7 +219,6 @@ public class Spreadsheet implements Sheet {
             visitedCells.remove(cellName);
         }
     }
-
 
 
 

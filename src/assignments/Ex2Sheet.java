@@ -10,6 +10,7 @@ import java.util.Set;
 public class Ex2Sheet implements Sheet {
     private Cell[][] table;
 
+
     /**
      * Constructor to initialize the spreadsheet with the specified dimensions.
      *
@@ -314,12 +315,7 @@ public class Ex2Sheet implements Sheet {
     }
 
     private String evaluateFormula(String formula, Set<String> visitedCells, int x, int y) {
-        // בדיקה מיוחדת להפניה עצמית ישירה
-        if (formula.substring(1).trim().equals("A" + y)) {
-            return Ex2Utils.ERR_CYCLE;
-        }
-
-        String cellName = (char) ('A' + x) + String.valueOf(y);
+        String cellName = (char) ('A' + x) + String.valueOf(y);  // הסרנו את ה-1+
         if (visitedCells.contains(cellName)) {
             return Ex2Utils.ERR_CYCLE;
         }
