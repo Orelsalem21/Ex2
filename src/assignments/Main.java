@@ -1,37 +1,45 @@
 package assignments;
 
-import assignments.Spreadsheet;
+import java.util.HashSet;
 
 public class Main {
+
     public static void main(String[] args) {
-        // יצירת אובייקט של Spreadsheet בגודל 5x5
-        Spreadsheet spreadsheet = new Spreadsheet(5, 5);
+        // Initialize a spreadsheet for testing
+        Spreadsheet spreadsheet = new Spreadsheet(9, 17);
 
-        // הזנת הערכים
-        spreadsheet.set(0, 0, "10");     // A1 = 10
-        spreadsheet.set(1, 0, "=A1");    // B1 = A1
-        spreadsheet.set(2, 0, "=B1*2");  // C1 = B1 * 2
+        // Step 1: Set value to A1
+        System.out.println("Setting cell A1 to '=A1'...");
+        spreadsheet.set(0, 0, "=A1");
 
-        // חישוב עומק
-        int[][] depths = spreadsheet.depth();
+        // Step 2: Evaluate A1
+        System.out.println("Evaluating cell A1...");
+        String result = spreadsheet.eval(0, 0);
+        result = convertErrorToText(result);
+        System.out.println("Result for A1: " + result);
 
-        // הדפסת תוצאות העומק
-        System.out.println("Depth values for the spreadsheet:");
-        for (int y = 0; y < depths.length; y++) {
-            for (int x = 0; x < depths[0].length; x++) {
-                System.out.print("Cell (" + (char) ('A' + x) + (y + 1) + "): Depth = " + depths[y][x] + " | ");
+        // Step 3: Check the entire structure
+        System.out.println("Spreadsheet structure:");
+        String[][] evalResults = spreadsheet.eval();
+        for (int y = 0; y < spreadsheet.height(); y++) {
+            for (int x = 0; x < spreadsheet.width(); x++) {
+                String cellValue = convertErrorToText(evalResults[y][x]);
+                System.out.print(cellValue + "\t");
             }
             System.out.println();
         }
+    }
 
-        // הדפסת תוצאות הערכים
-        System.out.println("\nEvaluated values for the spreadsheet:");
-        String[][] values = spreadsheet.eval();
-        for (int y = 0; y < values.length; y++) {
-            for (int x = 0; x < values[0].length; x++) {
-                System.out.print("Cell (" + (char) ('A' + x) + (y + 1) + "): Value = " + values[y][x] + " | ");
-            }
-            System.out.println();
+    /**
+     * Converts numeric error codes to their text representation.
+     *
+     * @param value The value to check.
+     * @return The text representation of the error if applicable, otherwise the original value.
+     */
+    private static String convertErrorToText(String value) {
+        if (value.equals("-1.0")) {
+            return Ex2Utils.ERR_CYCLE; // Convert to ERR_CYCLE!
         }
+        return value; // Return original value if not an error
     }
 }

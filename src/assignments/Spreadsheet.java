@@ -19,7 +19,7 @@ public class Spreadsheet implements Sheet {
      * @param height The number of rows.
      */
     public Spreadsheet(int width, int height) {
-
+        // Check if the width (number of columns) is between 1 and 26 (A-Z)
         if (width < 1 || width > 26) {
             throw new IllegalArgumentException("The number of columns must be between 1 and 26.");
         }
@@ -218,6 +218,9 @@ public class Spreadsheet implements Sheet {
             visitedCells.remove(cellName);
         }
     }
+
+
+
 
     /**
      * Calculates the depth of a cell's formula by analyzing its dependencies.
