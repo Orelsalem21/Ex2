@@ -19,16 +19,24 @@ public class Spreadsheet implements Sheet {
      * @param height The number of rows.
      */
     public Spreadsheet(int width, int height) {
+
+        if (width < 1 || width > 26) {
+            throw new IllegalArgumentException("The number of columns must be between 1 and 26.");
+        }
+
+        if (height < 0 || height > 99) {
+            throw new IllegalArgumentException("The number of rows must be between 0 and 99.");
+        }
+
         this.width = width;
         this.height = height;
-        this.cells = new Cell[height][width];
+        this.cells = new Cell[height][width]; // Create the array
         for (int i = 0; i < height; i++) {
             for (int j = 0; j < width; j++) {
-                cells[i][j] = new SCell("");
+                cells[i][j] = new SCell("");  // Initialize the cells
             }
         }
     }
-
     // Public methods (overriding Sheet interface)
 
     /**
@@ -236,6 +244,7 @@ public class Spreadsheet implements Sheet {
      * @param y The y-coordinate (row index).
      * @return The depth of the formula.
      */
+
     private int calculateFormulaDepth(String formula, Set<String> visitedCells, int x, int y) {
         String cellName = (char) ('A' + x) + String.valueOf(y + 1);
         if (visitedCells.contains(cellName)) {
@@ -254,7 +263,7 @@ public class Spreadsheet implements Sheet {
      * @param cellName The cell name (e.g., "A1").
      * @return The x-coordinate of the cell.
      */
-    private int cellNameToX(String cellName) {
+    public int cellNameToX(String cellName) {
         return cellName.charAt(0) - 'A';
     }
 
@@ -264,7 +273,7 @@ public class Spreadsheet implements Sheet {
      * @param cellName The cell name (e.g., "A1").
      * @return The y-coordinate of the cell.
      */
-    private int cellNameToY(String cellName) {
+    public int cellNameToY(String cellName) {
         return Integer.parseInt(cellName.substring(1)) - 1;
     }
 }

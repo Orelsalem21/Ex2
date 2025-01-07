@@ -167,6 +167,7 @@ public class Ex2Sheet implements Sheet {
         }
         return cell.getData();
     }
+    // Saving and loading methods
 
     /**
      * Saves the spreadsheet data to a file.
@@ -236,7 +237,7 @@ public class Ex2Sheet implements Sheet {
     private void clearAllCells() {
         for (int x = 0; x < width(); x++) {
             for (int y = 0; y < height(); y++) {
-                set(x, y, "");  // or null, depending on the specific implementation
+                set(x, y, "");  // Clear the cell
             }
         }
     }

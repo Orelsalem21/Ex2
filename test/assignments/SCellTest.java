@@ -1,55 +1,81 @@
 package assignments;
 
 import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.Assertions;
+import java.util.HashSet;
 
-/**
- * Unit tests for the SCell class.
- */
-class SCellTest {
+public class SCellTest {
 
-    /**
-     * Tests the isFormula method for identifying formulas.
-     */
     @Test
-    void testIsFormula() {
-        assertTrue(SCell.isFormula("=A1+B2"));
-        assertFalse(SCell.isFormula("123.45"));  // A number should not be considered a formula
+    public void testIsNumberFunction() {
+        // Fully valid cases
+        Assertions.assertTrue(SCell.isNumber("1"), "Positive integer should be valid");
+        Assertions.assertTrue(SCell.isNumber("-1.1"), "Negative decimal should be valid");
+
+        // Invalid cases
+        Assertions.assertFalse(SCell.isNumber("2a"), "Number with letters is invalid");
+        Assertions.assertFalse(SCell.isNumber("{2}"), "Number with curly braces is invalid");
+        Assertions.assertFalse(SCell.isNumber("hi"), "Text is not a valid number");
     }
 
-    /**
-     * Tests the computeForm method to evaluate formulas.
-     */
     @Test
-    void testComputeForm() {
-        // Test a simple formula for addition
-        assertEquals(5.0, SCell.computeForm("=2+3", null, null));
+    public void testIsTextFunction() {
+        // Valid text cases
+        Assertions.assertTrue(SCell.isText("2a"), "Combination of number and letters is text");
+        Assertions.assertTrue(SCell.isText("{2}"), "Curly braces are considered text");
+        Assertions.assertTrue(SCell.isText("hi"), "Regular text should be valid");
 
-        // Test a formula with a reference to another cell
-        assertEquals(9.0, SCell.computeForm("=A1*3", null, null));  // Assuming cell A1 contains "3"
+        // Invalid text cases
+        Assertions.assertFalse(SCell.isText("1"), "Number should not be considered text");
+        Assertions.assertFalse(SCell.isText("=1"), "Formula should not be considered text");
     }
 
-    /**
-     * Tests the setData and getData methods for setting and retrieving data in a cell.
-     */
     @Test
-    void testSetData() {
-        SCell cell = new SCell("=A1+2");
-        assertEquals("=A1+2", cell.getData());  // Ensure that the data was correctly set
+    public void testIsFormulaFunction() {
+        // Valid formulas
+        Assertions.assertTrue(SCell.isFormula("=1"), "Number in formula should be valid");
+        Assertions.assertTrue(SCell.isFormula("=1.2"), "Decimal number in formula should be valid");
+        Assertions.assertTrue(SCell.isFormula("=(0.2)"), "Formula with parentheses should be valid");
+        Assertions.assertTrue(SCell.isFormula("=1+2"), "Addition formula should be valid");
+        Assertions.assertTrue(SCell.isFormula("=1+2*3"), "Formula with multiplication and addition should be valid");
+        Assertions.assertTrue(SCell.isFormula("=(1+2)*((3))-1"), "Complex formula should be valid");
+        Assertions.assertTrue(SCell.isFormula("=A1"), "Cell reference should be valid");
+        Assertions.assertTrue(SCell.isFormula("=A2+3"), "Formula with cell reference and value should be valid");
+        Assertions.assertTrue(SCell.isFormula("=(2+A3)/A2"), "Complex formula with cell references should be valid");
 
-        cell.setData("123.45");
-        assertEquals("123.45", cell.getData());  // Ensure that the new value was correctly set
+        // Invalid formulas
+        Assertions.assertFalse(SCell.isFormula("a"), "Single letter is not a formula");
+        Assertions.assertFalse(SCell.isFormula("AB"), "Letter combination is not a formula");
+        Assertions.assertFalse(SCell.isFormula("@2"), "Special symbol is not a formula");
+        Assertions.assertFalse(SCell.isFormula("2+)"), "Incomplete formula with parentheses is invalid");
+        Assertions.assertFalse(SCell.isFormula("(3+1*2)-"), "Formula with operator at the end is invalid");
+        Assertions.assertFalse(SCell.isFormula("=()"), "Empty formula is invalid");
+        Assertions.assertFalse(SCell.isFormula("=5**"), "Formula with duplicate operators is invalid");
     }
 
-    /**
-     * Tests the setType and getType methods to set and get the type of cell.
-     */
     @Test
-    void testTypeSetting() {
-        SCell cell = new SCell("=A1+2");
-        assertEquals(Ex2Utils.FORM, cell.getType());  // Verify that the type is correctly set to FORM
+    public void testComputeFormFunction() {
+        Sheet mockSheet = new Ex2Sheet(); // Mock sheet for tests
 
-        cell.setData("123.45");
-        assertEquals(Ex2Utils.NUMBER, cell.getType());  // Verify that the type changes to NUMBER
+        // Simple number tests
+        Assertions.assertEquals(1.0, SCell.computeForm("=1", mockSheet, new HashSet<>()), "Simple number formula");
+        Assertions.assertEquals(1.2, SCell.computeForm("=1.2", mockSheet, new HashSet<>()), "Decimal number");
+
+        // Arithmetic operation tests
+        Assertions.assertEquals(3.0, SCell.computeForm("=1+2", mockSheet, new HashSet<>()), "Simple addition");
+        Assertions.assertEquals(5.0, SCell.computeForm("=1+2*2", mockSheet, new HashSet<>()), "Addition and multiplication");
+
+        // Parentheses tests
+        Assertions.assertEquals(5.0, SCell.computeForm("=((1+2)*2)-1", mockSheet, new HashSet<>()), "Complex formula with parentheses");
+    }
+
+    @Test
+    public void testCircularReference() {
+        // Circular dependency test
+        Sheet mockSheet = new Ex2Sheet();
+        mockSheet.set(0, 0, "=A0"); // Self-referencing circular dependency
+
+        // Should return null or handle circular reference
+        Assertions.assertNull(SCell.computeForm("=A0", mockSheet, new HashSet<>()), "Circular dependency should return null");
     }
 }

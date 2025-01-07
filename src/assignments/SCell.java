@@ -114,7 +114,16 @@ public class SCell implements Cell {
             return false;
         }
     }
-
+    /**
+     * Checks if the provided string represents text (not a number or formula).
+     *
+     * @param text The string to check.
+     * @return true if the string represents text, false otherwise.
+     */
+    public static boolean isText(String text) {
+        // Check if the string is not null and is not a number or formula
+        return text != null && !isNumber(text) && !isFormula(text);
+    }
     /**
      * Checks if the provided string is a valid formula (starts with "=").
      *
