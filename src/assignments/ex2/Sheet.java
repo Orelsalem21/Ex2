@@ -1,4 +1,4 @@
-package assignments;
+package assignments.ex2;
 
 import java.io.IOException;
 
