@@ -4,149 +4,109 @@ import java.io.*;
 import java.util.HashSet;
 import java.util.Set;
 
-/**
- * Represents a spreadsheet with cells that can hold text, numbers, or formulas.
- */
 public class Spreadsheet implements Sheet {
     private Cell[][] cells;
     private int width;
     private int height;
 
+    public Spreadsheet(int x, int y) {
+        this.width = x;
+        this.height = y;
+        this.cells = new Cell[y][x];
 
-    /**
-     * Constructor to initialize the spreadsheet with the specified dimensions.
-     *
-     * @param width The number of columns.
-     * @param height The number of rows.
-     */
-    public Spreadsheet(int width, int height) {
-        // Check if the width (number of columns) is between 1 and 26 (A-Z)
-        if (width < 1 || width > 26) {
-            throw new IllegalArgumentException("The number of columns must be between 1 and 26.");
-        }
-
-        if (height < 0 || height > 99) {
-            throw new IllegalArgumentException("The number of rows must be between 0 and 99.");
-        }
-
-        this.width = width;
-        this.height = height;
-        this.cells = new Cell[height][width]; // Create the array
-        for (int i = 0; i < height; i++) {
-            for (int j = 0; j < width; j++) {
-                cells[i][j] = new SCell("");  // Initialize the cells
+        for (int i = 0; i < y; i++) {
+            for (int j = 0; j < x; j++) {
+                cells[i][j] = new SCell(Ex2Utils.EMPTY_CELL);
             }
         }
     }
-    // Public methods (overriding Sheet interface)
 
-    /**
-     * Gets the cell at the specified coordinates (x, y).
-     *
-     * @param x The x-coordinate (column index).
-     * @param y The y-coordinate (row index).
-     * @return The cell at the specified coordinates, or null if the coordinates are out of bounds.
-     */
     @Override
     public Cell get(int x, int y) {
-        return isIn(x, y) ? cells[y][x] : null;
+        if (isIn(x, y)) {
+            return cells[y][x];
+        }
+        return null;
     }
 
-    /**
-     * Gets the cell based on the cell name (e.g., "A1").
-     *
-     * @param cellName The name of the cell (e.g., "A1").
-     * @return The cell corresponding to the given name, or null if the cell name is invalid.
-     */
     @Override
     public Cell get(String cellName) {
-        int x = cellNameToX(cellName);
-        int y = cellNameToY(cellName);
-        return isIn(x, y) ? cells[y][x] : null;
-    }
+        int x = xCell(cellName);
+        int y = yCell(cellName);
 
-    /**
-     * Returns the evaluated value of a cell at the given coordinates.
-     *
-     * @param x The x-coordinate (column index).
-     * @param y The y-coordinate (row index).
-     * @return The evaluated value of the cell at (x, y).
-     */
-    @Override
-    public String value(int x, int y) {
-        return eval(x, y);
-    }
-
-    /**
-     * Sets the data for the cell at the given coordinates.
-     *
-     * @param x The x-coordinate (column index).
-     * @param y The y-coordinate (row index).
-     * @param s The data to set for the cell.
-     */
-    @Override
-    public void set(int x, int y, String s) {
         if (isIn(x, y)) {
-            cells[y][x] = new SCell(s);
+            return cells[y][x];
+        }
+        return null;
+    }
+
+    @Override
+    public void set(int x, int y, String c) {
+        if (isIn(x, y)) {
+            cells[y][x] = new SCell(c);
         }
     }
 
-    /**
-     * Checks if the coordinates (x, y) are within the valid range of the spreadsheet.
-     *
-     * @param x The x-coordinate (column index).
-     * @param y The y-coordinate (row index).
-     * @return true if the coordinates are valid, otherwise false.
-     */
-    @Override
-    public boolean isIn(int x, int y) {
-        return x >= 0 && x < width && y >= 0 && y < height;
+    public void set(int x, int y, Cell c) {
+        if (isIn(x, y)) {
+            cells[y][x] = c;
+        }
     }
 
-    /**
-     * Returns the width (number of columns) of the spreadsheet.
-     *
-     * @return The width of the spreadsheet.
-     */
-    @Override
-    public int width() {
-        return width;
+    public int xCell(String cellName) {
+        if (cellName == null || cellName.isEmpty()) {
+            return -1;
+        }
+        cellName = cellName.toUpperCase();
+        return cellName.charAt(0) - 'A';
     }
 
-    /**
-     * Returns the height (number of rows) of the spreadsheet.
-     *
-     * @return The height of the spreadsheet.
-     */
-    @Override
-    public int height() {
-        return height;
+    public int yCell(String cellName) {
+        if (cellName == null || cellName.isEmpty()) {
+            return -1;
+        }
+        try {
+            cellName = cellName.toUpperCase(); // המרת אותיות קטנות לגדולות
+            return Integer.parseInt(cellName.substring(1)) - 1; // חישוב המספר
+        } catch (NumberFormatException e) {
+            return -1;
+        }
     }
 
-    /**
-     * Evaluates the value of a specific cell at the given coordinates.
-     *
-     * @param x The x-coordinate (column index).
-     * @param y The y-coordinate (row index).
-     * @return The evaluated value of the cell at (x, y).
-     */
+
     @Override
     public String eval(int x, int y) {
         if (!isIn(x, y)) {
             return Ex2Utils.ERR_FORM;
         }
+
         Cell cell = cells[y][x];
-        if (cell.getType() == Ex2Utils.FORM) {
-            Set<String> visitedCells = new HashSet<>();
-            return evaluateFormula(cell.getData(), visitedCells, x, y);
+
+        switch (cell.getType()) {
+            case Ex2Utils.FORM:
+                Set<String> visitedCells = new HashSet<>();
+                SCell scell = new SCell(cell.getData());
+                Object result = scell.computeFormula(cell.getData(), this);
+
+                if (result instanceof Double) {
+                    return result.toString();
+                } else if (result instanceof Integer && (int) result == Ex2Utils.ERR_FORM_FORMAT) {
+                    return Ex2Utils.ERR_FORM;
+                } else if (result instanceof Integer && (int) result == Ex2Utils.ERR_CYCLE_FORM) {
+                    return Ex2Utils.ERR_CYCLE;
+                }
+
+                return Ex2Utils.ERR_FORM;
+
+            case Ex2Utils.NUMBER:
+            case Ex2Utils.TEXT:
+                return cell.getData();
+
+            default:
+                return Ex2Utils.ERR_FORM;
         }
-        return cell.getData();
     }
-    /**
-     * Evaluates the entire spreadsheet and returns a 2D array of the evaluated values.
-     *
-     * @return A 2D array of the evaluated values for all cells.
-     */
+
     @Override
     public String[][] eval() {
         String[][] result = new String[height][width];
@@ -158,125 +118,99 @@ public class Spreadsheet implements Sheet {
         return result;
     }
 
-    /**
-     * Calculates the depth of each cell in terms of its formula dependencies.
-     *
-     * @return A 2D array representing the depth of each cell.
-     */
     @Override
     public int[][] depth() {
         int[][] depths = new int[height][width];
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
-                depths[y][x] = calculateDepth(x, y);
+                depths[y][x] = calculateCellDepth(x, y);
             }
         }
         return depths;
     }
-    
-    /**
-     * Placeholder for the save method, which is not implemented in this class.
-     * This method is handled and fully implemented in the Ex2Sheet class.
-     *
-     * @param fileName The name of the file to save the spreadsheet data.
-     * @throws UnsupportedOperationException as this method is not supported in this class.
-     */
-    @Override
-    public void save(String fileName) throws IOException {
-        throw new UnsupportedOperationException("Not supported.");
-    }
 
-    @Override
-    public void load(String fileName) throws IOException {
-        throw new UnsupportedOperationException("Not supported.");
-    }
-
-    // Private helper methods
-
-    /**
-     * Evaluates a formula and returns its result.
-     * Handles circular references and computation of the formula's value.
-     *
-     * @param formula The formula to evaluate.
-     * @param visitedCells A set of cells that have already been visited to prevent circular references.
-     * @param x The x-coordinate (column index).
-     * @param y The y-coordinate (row index).
-     * @return The evaluated result of the formula.
-     */
-    private String evaluateFormula(String formula, Set<String> visitedCells, int x, int y) {
-        String cellName = (char) ('A' + x) + String.valueOf(y + 1);
-        if (visitedCells.contains(cellName)) {
-            return Ex2Utils.ERR_FORM;
-        }
-        visitedCells.add(cellName);
-
-        try {
-            Double result = SCell.computeForm(formula, this, visitedCells);
-            return result != null ? result.toString() : Ex2Utils.ERR_FORM;
-        } catch (Exception e) {
-            return Ex2Utils.ERR_FORM;
-        } finally {
-            visitedCells.remove(cellName);
-        }
-    }
-
-
-
-    /**
-     * Calculates the depth of a cell's formula by analyzing its dependencies.
-     *
-     * @param x The x-coordinate (column index).
-     * @param y The y-coordinate (row index).
-     * @return The depth of the formula.
-     */
-    private int calculateDepth(int x, int y) {
+    private int calculateCellDepth(int x, int y) {
         Cell cell = cells[y][x];
+
         if (cell.getType() != Ex2Utils.FORM) {
             return 0;
         }
+
         Set<String> visitedCells = new HashSet<>();
         return calculateFormulaDepth(cell.getData(), visitedCells, x, y);
     }
 
-    /**
-     * Calculates the formula depth considering its dependencies.
-     *
-     * @param formula The formula to analyze.
-     * @param visitedCells A set of cells that have already been evaluated to prevent circular dependencies.
-     * @param x The x-coordinate (column index).
-     * @param y The y-coordinate (row index).
-     * @return The depth of the formula.
-     */
-
     private int calculateFormulaDepth(String formula, Set<String> visitedCells, int x, int y) {
         String cellName = (char) ('A' + x) + String.valueOf(y + 1);
+
         if (visitedCells.contains(cellName)) {
-            return -1;
+            return Ex2Utils.ERR_CYCLE_FORM;
         }
         visitedCells.add(cellName);
 
+        if (!SCell.isFormula(formula)) {
+            visitedCells.remove(cellName);
+            return 0;
+        }
+
+        String expr = formula.substring(1).trim();
         int maxDepth = 0;
+
+        for (int i = 0; i < expr.length(); i++) {
+            if (Character.isLetter(expr.charAt(i))) {
+                StringBuilder cellRef = new StringBuilder();
+                while (i < expr.length() && (Character.isLetterOrDigit(expr.charAt(i)))) {
+                    cellRef.append(expr.charAt(i++));
+                }
+                i--;
+
+                int refX = xCell(cellRef.toString());
+                int refY = yCell(cellRef.toString());
+
+                if (isIn(refX, refY)) {
+                    int cellDepth = calculateCellDepth(refX, refY);
+
+                    if (cellDepth == Ex2Utils.ERR_CYCLE_FORM) {
+                        visitedCells.remove(cellName);
+                        return Ex2Utils.ERR_CYCLE_FORM;
+                    }
+
+                    maxDepth = Math.max(maxDepth, cellDepth);
+                }
+            }
+        }
+
         visitedCells.remove(cellName);
         return maxDepth + 1;
     }
 
-    /**
-     * Converts a cell name (e.g., "A1") to its x-coordinate (column index).
-     *
-     * @param cellName The cell name (e.g., "A1").
-     * @return The x-coordinate of the cell.
-     */
-    public int cellNameToX(String cellName) {
-        return cellName.charAt(0) - 'A';
+    @Override
+    public boolean isIn(int x, int y) {
+        return x >= 0 && x < width && y >= 0 && y < height;
     }
 
-    /**
-     * Converts a cell name (e.g., "A1") to its y-coordinate (row index).
-     *
-     * @param cellName The cell name (e.g., "A1").
-     * @return The y-coordinate of the cell.
-     */
-    public int cellNameToY(String cellName) {
-        return Integer.parseInt(cellName.substring(1)) - 1;
+    @Override
+    public int width() {
+        return width;
+    }
+
+    @Override
+    public int height() {
+        return height;
+    }
+
+    @Override
+    public void load(String fileName) throws IOException {
+        // Not implemented
+    }
+
+    @Override
+    public void save(String fileName) throws IOException {
+        // Not implemented
+    }
+
+    @Override
+    public String value(int x, int y) {
+        return eval(x, y);
     }
 }
