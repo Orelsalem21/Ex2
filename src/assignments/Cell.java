@@ -1,4 +1,4 @@
-package assignments.ex2;
+package assignments;
 
 
 /**
