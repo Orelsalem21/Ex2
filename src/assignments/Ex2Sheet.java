@@ -28,6 +28,7 @@ public class Ex2Sheet implements Sheet {
         String ans = Ex2Utils.EMPTY_CELL;
         SCell c = (SCell)get(x,y);
         if(c!=null) {
+            this.eval();
             if(c.getType() == Ex2Utils.ERR_FORM_FORMAT){
                 return Ex2Utils.ERR_FORM;
             } else if (c.getType() == Ex2Utils.ERR_CYCLE_FORM) {
@@ -36,6 +37,7 @@ public class Ex2Sheet implements Sheet {
             ans = c.toString();
             if(c.getType() == Ex2Utils.FORM){
                 try {
+                    eval();
                     ans = String.valueOf(c.computeForm(ans));
                 }catch (SCell.ErrorForm e) {
                     ans = Ex2Utils.ERR_FORM;
@@ -83,11 +85,28 @@ public class Ex2Sheet implements Sheet {
         SCell c = new SCell(s,this);
         c.setEntry(new CellEntry(Ex2Utils.ABC[x]+y));
         table[x][y] = c;
+        updateDependentCells(x, y);
+        eval(x, y);
+    }
+
+    private void updateDependentCells(int x, int y) {
+        for (int i = 0; i < width(); i++) {
+            for (int j = 0; j < height(); j++) {
+                SCell cell = (SCell)get(i, j);
+                if (cell.getType() == Ex2Utils.FORM) {
+                    ArrayList<SCell> refs = cell.getReferences(cell.getData());
+                    for (SCell ref : refs) {
+                        if (ref.entry.getIndex().equals(Ex2Utils.ABC[x] + y)) {
+                            eval(i, j);
+                        }
+                    }
+                }
+            }
+        }
     }
 
     @Override
     public void eval() {
-        // Reset cells first
         for (int i = 0; i < width(); i++) {
             for (int j = 0; j < height(); j++) {
                 if (table[i][j] != null) {
@@ -141,6 +160,7 @@ public class Ex2Sheet implements Sheet {
 
         String str = cell.getData();
         if (str.isEmpty()) {
+            cell.setValue("");
             cell.setType(Ex2Utils.TEXT);
             return;
         }
@@ -215,6 +235,7 @@ public class Ex2Sheet implements Sheet {
         System.out.println(Arrays.deepToString(ans));
         return ans;
     }
+
     public void clearTable(){
         for (int i = 0; i < width(); i++) {
             for (int j = 0; j < height(); j++) {
@@ -256,7 +277,6 @@ public class Ex2Sheet implements Sheet {
         }
         eval();
     }
-
 
     @Override
     public void save(String fileName) throws IOException {

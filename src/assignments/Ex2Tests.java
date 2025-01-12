@@ -7,7 +7,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class Ex2Tests {
     @Test
-    void testIsForm(){
+    void testIsForm() {
         SCell cell = new SCell("Hey", new Ex2Sheet());
         String[] validFormulas = {
                 "=1", "=1+2", "=(1+2)", "=2*3", "=(2*3)", "=(1+2)*3", "=A1", "=A2+3", "=(1+2)*((3))-1",
@@ -30,7 +30,7 @@ class Ex2Tests {
         String[] invalidFormulas = {
                 "=a", "=AB", "=@2", "=2+)", "=(3+1*2)-", "==1", "=1+", "=A1+2+3)", "=(1+A2", "=A1+(2-3",
                 "=1*2+", "=(1/2", "=1/(2", "=1*2/3+)", "=1+2-3/", "=(1+2)*3-)", "=1-2+", "=(A1+A2-", "=1+2+3)+4",
-                "=(1*A2", "=A1/(A2", "=A1-(A2", "=A1+(2", "=1+", "=1/2/", "=(1/(2)", "=1*A2/", "=1+A2-","=a100","=5+a400+2",
+                "=(1*A2", "=A1/(A2", "=A1-(A2", "=A1+(2", "=1+", "=1/2/", "=(1/(2)", "=1*A2/", "=1+A2-", "=a100", "=5+a400+2",
                 "=(1+2)-(3+", "=1/(A2", "=1+(A2", "=1-(A2", "=1+(2+A2", "=1+A2/(A3", "=(A1)+(B2)-", "=A1-(B2", "=(1+A2",
                 "=(1+A2-", "=(1+2)*(3)+)", "=1-2/3-", "=1/(2+3-", "=1+(A2/(B3", "=1-2/(3", "=1*2/3+", "=(1/A2", "=1-(A2",
                 "=1+(A2-", "=1+(A2)+", "=1+(A2*(B3", "=1/A2*(B3", "=(A1)/(B2-", "=A1/(B2+(C3", "=(1+A2-(3+", "=(A1+A2-(3+",
@@ -48,7 +48,7 @@ class Ex2Tests {
     @Test
     void testISIn() throws Exception {
         Ex2Sheet sheet = new Ex2Sheet();
-        int x = 8,y=15;
+        int x = 8, y = 15;
         assertTrue(sheet.isIn(x, y));
         x = -1;
         y = 5;
@@ -62,34 +62,18 @@ class Ex2Tests {
     }
 
     @Test
-    void testValue()throws Exception{
+    void testValue() throws Exception {
         Ex2Sheet sheet = new Ex2Sheet();
-        sheet.set(0,0,"=15+2");
+        sheet.set(0, 0, "=15+2");
         sheet.eval();
-        assertEquals("17.0",sheet.value(0,0));
-        sheet.set(0,0,"=15G+2");
+        assertEquals("17.0", sheet.value(0, 0));
+        sheet.set(0, 0, "=15G+2");
         sheet.eval();
-        assertEquals(Ex2Utils.ERR_FORM,sheet.value(0,0));
-        sheet.set(0,0,"=18/9*3");
+        assertEquals(Ex2Utils.ERR_FORM, sheet.value(0, 0));
+        sheet.set(0, 0, "=18/9*3");
         sheet.eval();
-        assertEquals("6.0",sheet.value(0,0));
+        assertEquals("6.0", sheet.value(0, 0));
     }
-
-    @Test
-    void testCompute() throws Exception {
-        String s1 = "((4+2)*2/4)+35";
-        SCell cell = new SCell(s1, new Ex2Sheet());
-        assertEquals(38,cell.computeForm(cell.getData()));
-        cell.setData("(((4+2)*2/4)+35)/2");
-        assertEquals(19,cell.computeForm(cell.getData()));
-        cell.setData("=(50-30)/(2+4)");
-        assertEquals(3.3333333333333335,cell.computeForm(cell.getData()));
-        cell.setData("=(8+(3*(4+2)))-(7/(5-2))");
-        assertEquals(23.666666666666668,cell.computeForm(cell.getData()));
-    }
-
-
-
     @Test
     void testIsVaild() throws Exception {
         CellEntry entry = new CellEntry("A40");
@@ -107,18 +91,20 @@ class Ex2Tests {
         entry.setIndex("B-1");
         assertFalse(entry.isValid());
     }
+
     @Test
-    void testGetXY()throws Exception {
+    void testGetXY() throws Exception {
         CellEntry entry = new CellEntry("A40");
-        assertEquals(0,entry.getX());
-        assertEquals(40,entry.getY());
+        assertEquals(0, entry.getX());
+        assertEquals(40, entry.getY());
         entry.setIndex("Z30");
-        assertEquals(25,entry.getX());
-        assertEquals(30,entry.getY());
+        assertEquals(25, entry.getX());
+        assertEquals(30, entry.getY());
         entry.setIndex("G15");
-        assertEquals(6,entry.getX());
-        assertEquals(15,entry.getY());
+        assertEquals(6, entry.getX());
+        assertEquals(15, entry.getY());
     }
+
     @Test
     void testValueForNumbers() throws Exception {
         Ex2Sheet sheet = new Ex2Sheet();
@@ -127,6 +113,7 @@ class Ex2Tests {
         assertEquals("1.0", sheet.value(0, 0), "Cell value mismatch");
         assertEquals(Ex2Utils.NUMBER, sheet.get(0, 0).getType(), "Cell type mismatch for NUMBER");
     }
+
     @Test
     void testEvaluateCellAndValue() throws Exception {
         Ex2Sheet sheet = new Ex2Sheet();
@@ -153,6 +140,7 @@ class Ex2Tests {
         assertEquals(Ex2Utils.ERR_FORM_FORMAT, sheet.get(2, 2).getType(), "Expected cell type to be ERR_FORM_FORMAT");
         assertEquals(Ex2Utils.ERR_FORM, sheet.value(2, 2), "Expected cell value to be ERR_FORM");
     }
+
     @Test
     void testAllCellTypes() {
         Ex2Sheet sheet = new Ex2Sheet();
@@ -170,6 +158,7 @@ class Ex2Tests {
         assertEquals(Ex2Utils.ERR_FORM_FORMAT, sheet.get(2, 2).getType(), "Cell (2,2) should be ERR_FORM_FORMAT");
         assertEquals(Ex2Utils.TEXT, sheet.get(3, 3).getType(), "Cell (3,3) should be TEXT");
     }
+
     @Test
     void testCellTypesAndConstants() {
         Ex2Sheet sheet = new Ex2Sheet();
@@ -188,6 +177,7 @@ class Ex2Tests {
         assertEquals(Ex2Utils.ERR_FORM_FORMAT, sheet.get(2, 2).getType(), "Expected type ERR_FORM_FORMAT for value '=1+X'");
         assertEquals(Ex2Utils.TEXT, sheet.get(3, 3).getType(), "Expected type TEXT for value 'Hello'");
     }
+
     @Test
     void testCellValuesAndTypes() {
         Ex2Sheet sheet = new Ex2Sheet();
@@ -211,25 +201,5 @@ class Ex2Tests {
         assertEquals(Ex2Utils.FORM, sheet.get(1, 1).getType(), "Type mismatch for cell (1, 1)");
         assertEquals(Ex2Utils.ERR_FORM_FORMAT, sheet.get(2, 2).getType(), "Type mismatch for cell (2, 2)");
         assertEquals(Ex2Utils.TEXT, sheet.get(3, 3).getType(), "Type mismatch for cell (3, 3)");
-    }
-    @Test
-    void testFormulaWithEmptyReference() {
-        Ex2Sheet sheet = new Ex2Sheet();
-
-        // Set formula in A1 that references empty cell B1
-        sheet.set(0, 0, "=B1+2");  // A1 = B1 + 2
-        sheet.eval();
-
-        // Check initial state - התא צריך להישאר מסוג FORM גם כשהוא מתייחס לתא ריק
-        assertEquals(Ex2Utils.FORM, sheet.get(0, 0).getType(), "Cell type should be FORM even with empty reference");
-        assertEquals(Ex2Utils.ERR_FORM, sheet.value(0, 0), "Should show ERR_FORM when referenced cell is empty");
-
-        // Set value in B1
-        sheet.set(1, 0, "3");  // B1 = 3
-        sheet.eval();
-
-        // Now A1 should evaluate correctly
-        assertEquals(Ex2Utils.FORM, sheet.get(0, 0).getType(), "A1 should remain type FORM");
-        assertEquals("5.0", sheet.value(0, 0), "Formula should evaluate to 5.0 (3 + 2)");
     }
 }

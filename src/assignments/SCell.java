@@ -6,7 +6,7 @@ public class SCell implements Cell {
     private int type;
     //1 - Text, 2 - Number, 3 - Form, -2 - Err form, -1 - Err cycle\Err
     private Ex2Sheet sheet;
-    private CellEntry entry;
+    public CellEntry entry;
     private int order;
     private boolean isVisited = false;
     private boolean isCalculating = false;
@@ -21,9 +21,11 @@ public class SCell implements Cell {
     public void setValue(String v){
         this.value = v;
     }
+
     public void setEntry(CellEntry e){
         this.entry = e;
     }
+
     //@Override
     @Override
     public String toString() {
@@ -34,6 +36,7 @@ public class SCell implements Cell {
     public void setData(String s) {
         line = s;
     }
+
     @Override
     public String getData() {
         return line;
@@ -58,11 +61,13 @@ public class SCell implements Cell {
     public int getOrder() {
         return this.order;
     }
+
     public void resetVisited() {
         isVisited = false;
         isCalculating = false;
         calculatedOrder = -2;
     }
+
     public boolean detectCycle(ArrayList<String> path) {
         if (isCalculating) {
             return true;
@@ -154,8 +159,6 @@ public class SCell implements Cell {
         calculatedOrder = max + 1;
         return max + 1;
     }
-
-
 
     public boolean isForm(String str){
         if (str.isEmpty() || str.length() == 1){
@@ -336,6 +339,8 @@ public class SCell implements Cell {
             if (divisor == 0) {
                 return Double.POSITIVE_INFINITY;
             }
+            System.out.println("Computing formula for: " + this.entry.getIndex());
+            System.out.println("Expression: " + expression);
             return computeForm(expression.substring(0, divisionIndex)) / divisor;
         }
 
@@ -346,6 +351,7 @@ public class SCell implements Cell {
         String ops = "+-/*";
         return ops.contains(String.valueOf(c));
     }
+
     public static boolean noOps(String str) {
         for (int i = 0; i < str.length(); i++) {
             if (isOp(str.charAt(i))) {
@@ -364,6 +370,7 @@ public class SCell implements Cell {
         }
         return true;
     }
+
     public static int correctClosedBracket(String str,int index){
         int count = 0;
         for (int i = index; i < str.length(); i++) {
@@ -378,18 +385,22 @@ public class SCell implements Cell {
         }
         return -1;
     }
+
     public static boolean validChars(char c){
         String validChars = "+-*/.()";
         return validChars.indexOf(c) != -1;
     }
+
     public static boolean isLetter(char c){
         String ABC = "ABCDEFHIGKLMNOPQRSTUVWXYZ";
         return ABC.indexOf(c) != -1;
     }
+
     public static boolean isDigit(char c){
         String digits = "0123456789";
         return digits.indexOf(c) != -1;
     }
+
     public static int closestOpOrBrackets(String str,int start){
         int i;
         for (i = start; i < str.length(); i++) {
@@ -399,6 +410,7 @@ public class SCell implements Cell {
         }
         return i;
     }
+
     public boolean isNumber(String s){
         try {
             Double.parseDouble(s);
@@ -407,13 +419,13 @@ public class SCell implements Cell {
             return false;
         }
     }
+
     public boolean isText(String str){
         if(!this.isNumber(str) && !this.isForm(str)){
             return true;
         }
         return false;
     }
-
 
     public ArrayList<SCell> getReferences(String str) {
         ArrayList<SCell> references = new ArrayList<>();
@@ -448,6 +460,7 @@ public class SCell implements Cell {
             super(errorMessage);
         }
     }
+
     public class ErrorCycle extends Exception {
         public ErrorCycle(String errorMessage) {
             super(errorMessage);

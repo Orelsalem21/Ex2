@@ -1,17 +1,18 @@
-// Add your documentation below:
-
 public class CellEntry  implements Index2D {
     private String index;
 
     public CellEntry(String index) {
         this.index = index;
     }
+
     public String getIndex() {
         return index;
     }
+
     public void setIndex(String index) {
         this.index = index;
     }
+
     @Override
     public boolean isValid() {
         if(this.index == null|| this.index.isEmpty()) {
@@ -51,6 +52,7 @@ public class CellEntry  implements Index2D {
             return -1;
         }
     }
+
     @Override
     public String toString() {
         return this.index;
@@ -65,6 +67,4 @@ public class CellEntry  implements Index2D {
         }
         return false;
     }
-
-
 }
