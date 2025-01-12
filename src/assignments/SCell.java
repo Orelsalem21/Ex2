@@ -334,7 +334,7 @@ public class SCell implements Cell {
         if (divisionIndex != -1) {
             double divisor = computeForm(expression.substring(divisionIndex + 1));
             if (divisor == 0) {
-                throw new ErrorForm("DivisionByZero");
+                return Double.POSITIVE_INFINITY;
             }
             return computeForm(expression.substring(0, divisionIndex)) / divisor;
         }
