@@ -1,28 +1,42 @@
-package assignments;
-
-import java.util.HashSet;
-import java.util.Set;
-import java.util.Stack;
+import java.util.ArrayList;
 
 public class SCell implements Cell {
-    private String data;
+    private String line;
+    private String value = "";
     private int type;
+    //1 - Text, 2 - Number, 3 - Form, -2 - Err form, -1 - Err cycle\Err
+    private Ex2Sheet sheet;
+    private CellEntry entry;
     private int order;
+    private boolean isVisited = false;
+    private boolean isCalculating = false;
+    private int calculatedOrder = -2;
 
-    public SCell(String s) {
+    public SCell(String s, Ex2Sheet sheet) {
+        // Add your code here
+        this.sheet = sheet;
         setData(s);
-        this.order = 0;
     }
 
+    public void setValue(String v){
+        this.value = v;
+    }
+    public void setEntry(CellEntry e){
+        this.entry = e;
+    }
+    //@Override
     @Override
-    public String getData() {
-        return data;
+    public String toString() {
+        return this.line;
     }
 
     @Override
     public void setData(String s) {
-        this.data = s;
-        this.type = determineType(s);
+        line = s;
+    }
+    @Override
+    public String getData() {
+        return line;
     }
 
     @Override
@@ -32,272 +46,411 @@ public class SCell implements Cell {
 
     @Override
     public void setType(int t) {
-        this.type = t;
+        type = t;
+    }
+
+    @Override
+    public void setOrder(int t) {
+        this.order = t;
     }
 
     @Override
     public int getOrder() {
-        return order;
+        return this.order;
     }
-
-    @Override
-    public void setOrder(int order) {
-        this.order = order;
+    public void resetVisited() {
+        isVisited = false;
+        isCalculating = false;
+        calculatedOrder = -2;
     }
-
-    private int determineType(String s) {
-        if (s == null || s.isEmpty()) {
-            return Ex2Utils.TEXT;
-        }
-        if (isNumeric(s)) {
-            return Ex2Utils.NUMBER;
-        }
-        if (isFormula(s)) {
-            return Ex2Utils.FORM;
-        }
-        return Ex2Utils.TEXT;
-    }
-
-    public static boolean isNumeric(String text) {
-        if (text == null || text.isEmpty()) {
-            return false;
-        }
-        try {
-            Double.parseDouble(text);
-            return true;
-        } catch (NumberFormatException e) {
-            return false;
-        }
-    }
-
-    public static boolean isFormula(String text) {
-        // בודק רק אם זה מתחיל ב-= ויש עוד תווים
-        return text != null && text.startsWith("=") && text.length() > 1;
-    }
-
-    private static boolean isValidFormula(String text) {
-        if (text == null || text.isEmpty()) {
-            return false;
-        }
-
-        if (isNumeric(text)) {
+    public boolean detectCycle(ArrayList<String> path) {
+        if (isCalculating) {
             return true;
         }
+        if (isVisited) {
+            return false;
+        }
 
-        return text.matches("([A-Za-z]+[0-9]+|[0-9]+)([-+*/]([A-Za-z]+[0-9]+|[0-9]+))*");
+        isCalculating = true;
+        if (entry != null) {
+            path.add(this.entry.getIndex());
+        }
+
+        ArrayList<SCell> refs = getReferences(this.getData());
+        for (SCell ref : refs) {
+            if (ref != null && ref.detectCycle(path)) {
+                return true;
+            }
+        }
+
+        if (entry != null) {
+            path.remove(this.entry.getIndex());
+        }
+        isCalculating = false;
+        isVisited = true;
+        return false;
     }
 
-    public Object computeFormula(String form, Sheet sheet) {
+    public int calcOrder() {
+        if (calculatedOrder != -2) {
+            return calculatedOrder;
+        }
+
+        if (isCalculating) {
+            return -1;
+        }
+
+        String str = this.getData();
+        if (str == null || str.isEmpty() || type == Ex2Utils.TEXT || type == Ex2Utils.NUMBER) {
+            calculatedOrder = 0;
+            return 0;
+        }
+        if (type == Ex2Utils.ERR_FORM_FORMAT) {
+            calculatedOrder = -2;
+            return -2;
+        }
+        if (type == Ex2Utils.ERR_CYCLE_FORM) {
+            calculatedOrder = -1;
+            return -1;
+        }
+
+        isCalculating = true;
+        ArrayList<SCell> refs = getReferences(str);
+        ArrayList<Integer> depends = new ArrayList<>();
+
+        for (SCell ref : refs) {
+            if (ref == null) {
+                calculatedOrder = -2;
+                isCalculating = false;
+                return -2;
+            }
+            int depend = ref.calcOrder();
+            if (depend == -1) {
+                calculatedOrder = -1;
+                isCalculating = false;
+                return -1;
+            }
+            if (depend == -2) {
+                calculatedOrder = -2;
+                isCalculating = false;
+                return -2;
+            }
+            depends.add(depend);
+        }
+
+        isCalculating = false;
+
+        if (depends.isEmpty()) {
+            calculatedOrder = 0;
+            return 0;
+        }
+
+        int max = 0;
+        for (Integer depend : depends) {
+            if (depend > max) {
+                max = depend;
+            }
+        }
+        calculatedOrder = max + 1;
+        return max + 1;
+    }
+
+
+
+    public boolean isForm(String str){
+        if (str.isEmpty() || str.length() == 1){
+            return false;
+        }
+        str = str.replaceAll(" ", "");
+        str = str.toUpperCase();
+        if(str.charAt(0) != '='){
+            return false;
+        }
+
+        if(str.indexOf("=") != str.lastIndexOf("=")){
+            return false;
+        }
+        str = str.substring(1);
         try {
-            String expr = form.substring(1).trim();
-
-            // בדיקה אם יש רק אות (כמו =B)
-            if (expr.matches("[A-Za-z]+")) {
-                return Ex2Utils.ERR_FORM_FORMAT;
+            Double.parseDouble(str);
+            return true;
+        }catch (NumberFormatException _){
+        }
+        for (int i = 0; i < str.length(); i++) {
+            if(!validChars(str.charAt(i)) && !isLetter(str.charAt(i)) && !isDigit(str.charAt(i))){
+                return false;
             }
-
-            if (isNumeric(expr)) {
-                return Double.parseDouble(expr);
-            }
-
-            // לבדוק שמספר התא תקין (99)
-            if (expr.matches("[A-Za-z][0-9]+") || isValidFormula(expr)) {
-                Set<String> visitedCells = new HashSet<>();
-                Stack<String> computationPath = new Stack<>();
-                Object result = computeFormulaWithCycleDetection(form, sheet, visitedCells, computationPath, getData());
-
-                if (result instanceof Double) {
-                    return result;
+            if(isLetter(str.charAt(i))){
+                int index = closestOpOrBrackets(str,i);
+                if(index == -1){
+                    return false;
                 }
-                return result;
+                CellEntry current = new CellEntry(str.substring(i,index));
+                if(!current.isValid()){
+                    return false;
+                }
             }
-
-            return Ex2Utils.ERR_FORM_FORMAT;
-        } catch (Exception e) {
-            return Ex2Utils.ERR_FORM_FORMAT;
-        }
-    }
-
-    public static Object computeFormulaWithCycleDetection(String form, Sheet sheet,
-                                                          Set<String> visitedCells, Stack<String> computationPath, String data) {
-        if (!isFormula(form)) {
-            return Ex2Utils.ERR_FORM_FORMAT;
         }
 
-        String expr = form.substring(1).trim();
-
-        if (expr.matches("[A-Za-z][0-9]+")) {
-            String currentCell = expr.toUpperCase();
-
-            // חילוץ התא שאנחנו כרגע מחשבים (למשל D0)
-            String sourceCell = getCellName(sheet, data);
-
-            // בדיקת הפניה עצמית - בין אם התא ריק או לא
-            if (currentCell.equals(sourceCell)) {
-                return Ex2Utils.ERR_CYCLE_FORM;
+        int bracketsCount = 0;
+        char c0 = str.charAt(0);
+        char cEnd = str.charAt(str.length()-1);
+        if((isOp(c0) && c0 != '-') || isOp(cEnd) || isLetter(cEnd)){
+            return false;
+        }
+        for (int i = 0; i < str.length()-1; i++) {
+            if(bracketsCount < 0){
+                return false;
             }
-            /** עד כאן תקין */
-
-            // בדיקת התא המפנה
-            Cell referencedCell = sheet.get(currentCell);
-
-            // בדיקת הפניה הדדית/מעגלית
-            if (referencedCell != null && referencedCell.getType() == Ex2Utils.FORM) {
-                String refData = referencedCell.getData();
-                if (refData != null) {
-                    String refTarget = refData.substring(1).trim().toUpperCase();
-                    if (refTarget.equals(sourceCell)) {
-                        return Ex2Utils.ERR_CYCLE_FORM;
+            char c = str.charAt(i);
+            char cPlus = str.charAt(i+1);
+            if(isOp(c)){
+                if(isOp(cPlus)){
+                    return false;
+                }
+                if (!isDigit(cPlus) && !isLetter(cPlus) && cPlus != '('){
+                    return false;
+                }
+            }
+            if(c == '('){
+                if(i!=0){
+                    if(isDigit(str.charAt(i-1)) || isLetter(str.charAt(i-1))||str.charAt(i-1) == '.'){
+                        return false;
                     }
                 }
+                bracketsCount++;
+                if(cPlus == ')'){
+                    return false;
+                }
+            }else if(c == ')'){
+                if(isDigit(str.charAt(i+1)) || isLetter(str.charAt(i+1)) || str.charAt(i+1) == '.'){
+                    return false;
+                }
+                bracketsCount--;
             }
 
-            // בדיקה אם התא ריק
-            if (referencedCell == null || referencedCell.getData().isEmpty()) {
-                return Ex2Utils.ERR_FORM_FORMAT;
+        }
+        int lastIndex = str.length()-1;
+        if(str.charAt(lastIndex) == '('){
+            bracketsCount++;
+        }else if(str.charAt(lastIndex) == ')'){
+            bracketsCount--;
+        }
+        return bracketsCount == 0;
+    }
+
+    public double computeForm(String expression) throws ErrorForm, ErrorCycle {
+        expression = expression.replaceAll(" ", "").toUpperCase();
+        if (expression.isEmpty()) {
+            return 0;
+        }
+        if (expression.charAt(0) == '=') {
+            expression = expression.substring(1);
+        }
+        if (noOps(expression)) {
+            boolean mins = false;
+            if (expression.charAt(0) == '-') {
+                mins = true;
+                expression = expression.substring(1);
+            }
+            if (isLetter(expression.charAt(0))) {
+                SCell cell = (SCell) this.sheet.get(expression);
+                if (cell == null || cell.getData().isEmpty()) {
+                    throw new ErrorForm("NoCellFound");
+                }
+
+                // First check for cycle
+                ArrayList<String> cyclePath = new ArrayList<>();
+                if (cell.detectCycle(cyclePath)) {
+                    throw new ErrorCycle("ErrorCycle");
+                }
+
+                // Check cell type and handle accordingly
+                int cellType = cell.getType();
+                if (cellType == Ex2Utils.ERR_CYCLE_FORM) {
+                    throw new ErrorCycle("ErrorCycle");
+                } else if (cellType == Ex2Utils.ERR_FORM_FORMAT) {
+                    throw new ErrorForm("ErrorForm");
+                } else if (cellType == Ex2Utils.TEXT) {
+                    throw new ErrorForm("TextCell");
+                }
+
+                // For number or form types, compute the value
+                String cellData = cell.getData();
+                if (cellData.isEmpty()) {
+                    return 0;
+                }
+
+                try {
+                    double result;
+                    if (cellType == Ex2Utils.NUMBER) {
+                        result = Double.parseDouble(cellData);
+                    } else {
+                        result = cell.computeForm(cellData);
+                    }
+                    return mins ? -result : result;
+                } catch (NumberFormatException e) {
+                    throw new ErrorForm("InvalidNumber");
+                }
             }
 
-            // אם התא מכיל מספר תקין
-            if (referencedCell.getType() == Ex2Utils.NUMBER) {
-                return Double.parseDouble(referencedCell.getData());
+            // Handle pure number case
+            expression = expression.replace("(", "").replace(")", "");
+            try {
+                return Double.parseDouble(expression);
+            } catch (NumberFormatException e) {
+                throw new ErrorForm("InvalidNumber");
             }
-
-            computationPath.push(currentCell);
         }
 
+        while (expression.contains("(")) {
+            int indexOfClosed = correctClosedBracket(expression, expression.indexOf('('));
+            String subStrAfterClose = expression.substring(indexOfClosed + 1);
+            expression = expression.substring(0, expression.indexOf("(")) +
+                    String.valueOf(computeForm(expression.substring(expression.indexOf("(") + 1, indexOfClosed)))
+                    + subStrAfterClose;
+        }
+
+        int additionIndex = expression.indexOf("+");
+        if (additionIndex != -1) {
+            return computeForm(expression.substring(0, additionIndex)) + computeForm(expression.substring(additionIndex + 1));
+        }
+
+        int subIndex = expression.indexOf("-");
+        if (subIndex != -1) {
+            if (subIndex == 0 && !isOp(expression.charAt(subIndex + 1))) {
+                return -computeForm(expression.substring(subIndex + 1));
+            } else if (!isOp(expression.charAt(subIndex - 1))) {
+                return computeForm(expression.substring(0, subIndex)) - computeForm(expression.substring(subIndex + 1));
+            }
+        }
+
+        int multiIndex = expression.indexOf("*");
+        if (multiIndex != -1) {
+            return computeForm(expression.substring(0, multiIndex)) * computeForm(expression.substring(multiIndex + 1));
+        }
+
+        int divisionIndex = expression.indexOf("/");
+        if (divisionIndex != -1) {
+            double divisor = computeForm(expression.substring(divisionIndex + 1));
+            if (divisor == 0) {
+                throw new ErrorForm("DivisionByZero");
+            }
+            return computeForm(expression.substring(0, divisionIndex)) / divisor;
+        }
+
+        throw new ErrorForm("InvalidExpression");
+    }
+
+    public static boolean isOp(char c) {
+        String ops = "+-/*";
+        return ops.contains(String.valueOf(c));
+    }
+    public static boolean noOps(String str) {
+        for (int i = 0; i < str.length(); i++) {
+            if (isOp(str.charAt(i))) {
+                if (str.charAt(i) != '-') {
+                    return false;
+                }
+            }
+        }
+        if(str.indexOf("-") != str.lastIndexOf("-")){
+            return false;
+        }
+        if(str.contains("-")){
+            if(str.indexOf("-") != 0){
+                return false;
+            }
+        }
+        return true;
+    }
+    public static int correctClosedBracket(String str,int index){
+        int count = 0;
+        for (int i = index; i < str.length(); i++) {
+            if(str.charAt(i) == '('){
+                count++;
+            } else if (str.charAt(i) == ')') {
+                count--;
+            }
+            if(count == 0){
+                return i;
+            }
+        }
+        return -1;
+    }
+    public static boolean validChars(char c){
+        String validChars = "+-*/.()";
+        return validChars.indexOf(c) != -1;
+    }
+    public static boolean isLetter(char c){
+        String ABC = "ABCDEFHIGKLMNOPQRSTUVWXYZ";
+        return ABC.indexOf(c) != -1;
+    }
+    public static boolean isDigit(char c){
+        String digits = "0123456789";
+        return digits.indexOf(c) != -1;
+    }
+    public static int closestOpOrBrackets(String str,int start){
+        int i;
+        for (i = start; i < str.length(); i++) {
+            if(isOp(str.charAt(i)) || str.charAt(i) == ')'){
+                return i;
+            }
+        }
+        return i;
+    }
+    public boolean isNumber(String s){
         try {
-            if (isNumeric(expr)) {
-                return Double.parseDouble(expr);
-            }
-
-            Object result = evaluateExpr(expr, sheet, visitedCells, computationPath, data);
-            if (result == null) {
-                return Ex2Utils.ERR_FORM_FORMAT;
-            }
-            if (result instanceof Double && ((Double) result).equals((double) Ex2Utils.ERR_CYCLE_FORM)) {
-                return Ex2Utils.ERR_CYCLE_FORM;
-            }
-            return result;
-        } catch (Exception e) {
-            return Ex2Utils.ERR_FORM_FORMAT;
+            Double.parseDouble(s);
+            return true;
+        }catch (NumberFormatException _){
+            return false;
         }
     }
-
-    // פונקציית עזר לחילוץ שם התא הנוכחי
-    private static String getCellName(Sheet sheet, String cellRef) {
-        int col = Character.toUpperCase(cellRef.charAt(0)) - 'A';
-        int row = Integer.parseInt(cellRef.substring(1));
-        return (char)('A' + col) + String.valueOf(row);
+    public boolean isText(String str){
+        if(!this.isNumber(str) && !this.isForm(str)){
+            return true;
+        }
+        return false;
     }
-    private static Double evaluateExpr(String expr, Sheet sheet,
-                                       Set<String> visitedCells, Stack<String> computationPath, String data) {
-        Stack<Double> values = new Stack<>();
-        Stack<Character> operators = new Stack<>();
 
-        for (int i = 0; i < expr.length(); i++) {
-            char c = expr.charAt(i);
-            if (Character.isWhitespace(c)) continue;
 
-            if (Character.isDigit(c) || c == '.') {
-                StringBuilder sb = new StringBuilder();
-                while (i < expr.length() && (Character.isDigit(expr.charAt(i)) || expr.charAt(i) == '.')) {
-                    sb.append(expr.charAt(i++));
+    public ArrayList<SCell> getReferences(String str) {
+        ArrayList<SCell> references = new ArrayList<>();
+        if (str == null || str.isEmpty()) {
+            return references;
+        }
+
+        str = str.replaceAll(" ", "").toUpperCase();
+        if (str.charAt(0) == '=') {
+            str = str.substring(1);
+        }
+
+        for (int i = 0; i < str.length(); i++) {
+            if (isLetter(str.charAt(i))) {
+                int endIndex = closestOpOrBrackets(str, i);
+                String cellRef = str.substring(i, endIndex);
+                CellEntry entry = new CellEntry(cellRef);
+                if (entry.isValid()) {
+                    SCell refCell = (SCell) this.sheet.get(entry.getIndex());
+                    if (refCell != null) {
+                        references.add(refCell);
+                    }
                 }
-                i--;
-                values.push(Double.parseDouble(sb.toString()));
-            } else if (isOperator(c)) {
-                while (!operators.isEmpty() && getPrecedence(c) <= getPrecedence(operators.peek())) {
-                    values.push(computeOperation(operators.pop(), values.pop(), values.pop()));
-                }
-                operators.push(c);
-            } else if (Character.isLetter(c)) {
-                StringBuilder sb = new StringBuilder();
-                while (i < expr.length() && Character.isLetterOrDigit(expr.charAt(i))) {
-                    sb.append(expr.charAt(i++));
-                }
-                i--;
-                String cellRef = sb.toString();
-                Double cellValue = getCellValue(cellRef, sheet, visitedCells, computationPath, data);
-                if (cellValue == null) return null;
-                if (cellValue.equals((double)Ex2Utils.ERR_CYCLE_FORM)) {
-                    return cellValue;
-                }
-                values.push(cellValue);
+                i = endIndex - 1;
             }
         }
-
-        while (!operators.isEmpty()) {
-            values.push(computeOperation(operators.pop(), values.pop(), values.pop()));
-        }
-
-        return values.isEmpty() ? null : values.pop();
+        return references;
     }
 
-    private static boolean isOperator(char c) {
-        return c == '+' || c == '-' || c == '*' || c == '/';
-    }
-
-    private static int getPrecedence(char op) {
-        if (op == '+' || op == '-') return 1;
-        if (op == '*' || op == '/') return 2;
-        return 0;
-    }
-
-    private static Double computeOperation(char op, Double b, Double a) {
-        if (a == null || b == null) return null;
-        switch (op) {
-            case '+':
-                return a + b;
-            case '-':
-                return a - b;
-            case '*':
-                return a * b;
-            case '/':
-                return b != 0 ? a / b : null;
-            default:
-                return null;
+    public class ErrorForm extends Exception {
+        public ErrorForm(String errorMessage) {
+            super(errorMessage);
         }
     }
-
-    private static Double getCellValue(String cellRef, Sheet sheet,
-                                       Set<String> visitedCells, Stack<String> computationPath, String data) {
-        if (cellRef == null || cellRef.isEmpty()) {
-            return null;
-        }
-
-        String upperCellRef = cellRef.toUpperCase();
-        if (computationPath.contains(upperCellRef)) {
-            return (double)Ex2Utils.ERR_CYCLE_FORM;
-        }
-
-        computationPath.push(upperCellRef);
-
-        try {
-            int col = Character.toUpperCase(cellRef.charAt(0)) - 'A';
-            int row = Integer.parseInt(cellRef.substring(1));
-
-            String value = sheet.value(col, row);
-            if (value == null || value.isEmpty()) {
-                return null;
-            }
-
-            if (isFormula(value)) {
-                Object result = computeFormulaWithCycleDetection(value, sheet, visitedCells, computationPath, data);
-                if (result instanceof Double) {
-                    return (Double) result;
-                }
-                return null;
-            }
-
-            if (isNumeric(value)) {
-                return Double.parseDouble(value);
-            }
-            return null;
-
-        } catch (Exception e) {
-            return null;
-        } finally {
-            computationPath.pop();
+    public class ErrorCycle extends Exception {
+        public ErrorCycle(String errorMessage) {
+            super(errorMessage);
         }
     }
 }

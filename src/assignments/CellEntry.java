@@ -1,94 +1,70 @@
-package assignments;
-
-import java.util.HashSet;
-import java.util.Set;
-
 // Add your documentation below:
-public class CellEntry implements Index2D {
 
-    private int x; // X coordinate (column index)
-    private int y; // Y coordinate (row index)
-    private String rawValue; // Original cell value
-    private int type; // Cell type
-    private Set<String> referencedCells; // Cells referenced in formula
-    private Object computedValue; // Computed value of the cell
-    private SCell scell; // Add SCell instance
+public class CellEntry  implements Index2D {
+    private String index;
 
-    public CellEntry(int x, int y) {
-        this.x = x;
-        this.y = y;
-        this.rawValue = Ex2Utils.EMPTY_CELL;
-        this.type = Ex2Utils.TEXT;
-        this.referencedCells = new HashSet<>();
-        this.scell = new SCell(""); // Initialize SCell
+    public CellEntry(String index) {
+        this.index = index;
     }
-
-    public void setValue(String value) {
-        this.rawValue = value;
-
-        if (value == null || value.isEmpty()) {
-            this.type = Ex2Utils.TEXT;
-            this.computedValue = null;
-        } else if (SCell.isNumeric(value)) {
-            this.type = Ex2Utils.NUMBER;
-            this.computedValue = Double.parseDouble(value);
-        } else if (SCell.isFormula(value)) {
-            this.type = Ex2Utils.FORM;
-            this.computedValue = null;
-            parseReferencedCells(value);
-        } else {
-            this.type = Ex2Utils.TEXT;
-            this.computedValue = value;
-        }
+    public String getIndex() {
+        return index;
     }
-
-    private void parseReferencedCells(String formula) {
-        referencedCells.clear();
-        String expr = formula.substring(1).trim();
-        for (int i = 0; i < expr.length(); i++) {
-            if (Character.isLetter(expr.charAt(i))) {
-                StringBuilder cellRef = new StringBuilder();
-                while (i < expr.length() && Character.isLetterOrDigit(expr.charAt(i))) {
-                    cellRef.append(expr.charAt(i++));
-                }
-                i--;
-                String ref = cellRef.toString().toUpperCase();
-                referencedCells.add(ref);
-            }
-        }
+    public void setIndex(String index) {
+        this.index = index;
     }
-
-    public Object compute(Sheet sheet) {
-        if (type != Ex2Utils.FORM) {
-            return computedValue;
-        }
-
-        scell.setData(rawValue);
-        Object result = scell.computeFormula(rawValue, sheet);
-
-        if (result instanceof Integer && (int) result == Ex2Utils.ERR_FORM_FORMAT) {
-            computedValue = Ex2Utils.ERR_FORM;
-        } else if (result instanceof Integer && (int) result == Ex2Utils.ERR_CYCLE_FORM) {
-            computedValue = Ex2Utils.ERR_CYCLE;
-        } else {
-            computedValue = result;
-        }
-
-        return computedValue;
-    }
-
     @Override
     public boolean isValid() {
-        return x >= 0 && y >= 0;
+        if(this.index == null|| this.index.isEmpty()) {
+            return false;
+        }
+        if(this.index.length() > 3 || this.index.length() < 2) {
+            return false;
+        }
+        if(!isLetter(this.index.charAt(0))){
+            return false;
+        }
+        try{
+            int num = Integer.parseInt(this.index.substring(1));
+            return num >= 0 && num <= 99;
+        }catch(NumberFormatException e){
+            return false;
+        }
     }
 
     @Override
     public int getX() {
-        return x;
+        String[] arr = Ex2Utils.ABC;
+        for(int i = 0; i < arr.length; i++){
+            if(String.valueOf(this.index.charAt(0)).equals(arr[i])) {
+                return i;
+            }
+        }
+        return -1;
     }
 
     @Override
     public int getY() {
-        return y;
+        try{
+            return Integer.parseInt(this.index.substring(1));
+        }
+        catch(NumberFormatException e){
+            return -1;
+        }
     }
+    @Override
+    public String toString() {
+        return this.index;
+    }
+
+    public static boolean isLetter(char c){
+        String s = String.valueOf(c);
+        for (String str : Ex2Utils.ABC){
+            if(str.equals(s)){
+                return true;
+            }
+        }
+        return false;
+    }
+
+
 }
