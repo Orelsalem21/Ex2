@@ -1,62 +1,99 @@
 package assignments;
 
 import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.Stack;
 
 public class SCellTest {
+
     @Test
-    public void testSCellFormulae() {  // או כל שם אחר של פונקציית טסט קיימת
-        Sheet sheet = new Ex2Sheet(5, 5);
+    public void testDetermineType() {
+        SCell numericCell = new SCell("123");
+        assertEquals(Ex2Utils.NUMBER, numericCell.getType());
 
-        // בודק הפנייה לתא במצב ERR_CYCLE
-        sheet.set(1, 1, "=E1");  // E1=E1 -> ERR_CYCLE
-        sheet.set(2, 1, "=E1");  // F1 מפנה ל-E1
-        String result = sheet.value(2, 1);
-        assertEquals(Ex2Utils.ERR_FORM, result);
-   //* @Test
-    //*public void testCyclicReferenceScenarios() {
-        //*Sheet sheet = new Ex2Sheet(5, 5);
+        SCell formulaCell = new SCell("=A1+5");
+        assertEquals(Ex2Utils.FORM, formulaCell.getType());
 
-        // Test Case 1: הפניה לתא שהוא ERR_CYCL
-        sheet.set(1, 1, "=E1");  // E1=E1 -> יהיה ERR_CYCL
-        sheet.set(2, 1, "=E1");  // F1 מפנה לתא עם ERR_CYCL
-        assertEquals(Ex2Utils.ERR_FORM, sheet.value(2, 1));  // צריך להיות ERR_FORM
+        SCell textCell = new SCell("Hello");
+        assertEquals(Ex2Utils.TEXT, textCell.getType());
 
-        // Test Case 2: הפניה לתא עם ערך תקין
-        sheet.set(2, 2, "5.0");    // שמים בF2 מספר תקין
-        sheet.set(1, 2, "=F2");    // E2 מפנה לF2
-        assertEquals("5.0", sheet.value(1, 2));  // צריך לקבל את המספר
-
-        // Test Case 3: הפניה עצמית ישירה
-        sheet.set(1, 3, "=E3");    // E3=E3
-        assertEquals(Ex2Utils.ERR_CYCLE, sheet.value(1, 3));  // צריך להיות ERR_CYCLE
-
-        // Test Case 2: הפניה לתא עם ערך תקין
-        sheet.set(2, 2, "5.0");  // F2 contains valid number
-        sheet.set(1, 2, "=F2");  // E2 points to valid number
-        assertEquals("5.0", sheet.value(1, 2));  // should return the number
-
-        // Test Case 3: הפניה עצמית ישירה
-        sheet.set(3, 3, "=G3");  // G3=G3
-        assertEquals(Ex2Utils.ERR_CYCLE, sheet.value(3, 3));  // should be ERR_CYCLE
-
-        // Test Case 4: הפניה מעגלית בין תאים
-        sheet.set(1, 4, "=F4");
-        sheet.set(2, 4, "=E4");
-        assertEquals(Ex2Utils.ERR_CYCLE, sheet.value(1, 4));  // should be ERR_CYCLE
+        SCell emptyCell = new SCell("");
+        assertEquals(Ex2Utils.TEXT, emptyCell.getType());
     }
 
-   //* @Test
-    public void testReferenceToErrorCell() {
-        Sheet sheet = new Ex2Sheet(5, 5);
+    @Test
+    public void testIsNumeric() {
+        assertTrue(SCell.isNumeric("123"));
+        assertTrue(SCell.isNumeric("123.456"));
+        assertFalse(SCell.isNumeric("ABC"));
+        assertFalse(SCell.isNumeric("123ABC"));
+    }
 
-        // Setup: תא אחד במצב ERR_CYCL
-        sheet.set(1, 1, "=E1");  // E1=E1 -> ERR_CYCL
-        assertEquals(Ex2Utils.ERR_CYCLE, sheet.value(1, 1));
+    @Test
+    public void testIsFormula() {
+        assertTrue(SCell.isFormula("=A1+5"));
+        assertTrue(SCell.isFormula("=123"));
+        assertFalse(SCell.isFormula("123"));
+        assertFalse(SCell.isFormula("Hello"));
+    }
 
-        // Test: הפניה לתא שהוא במצב ERR_CYCL
-        sheet.set(2, 1, "=E1");  // F1 points to E1 (which is ERR_CYCL)
-        assertEquals(Ex2Utils.ERR_FORM, sheet.value(2, 1));  // should be ERR_FORM
+    @Test
+    public void testComputeFormulaSimple() {
+        Ex2Sheet sheet = new Ex2Sheet(3, 3);
+        sheet.set(0, 0, "5"); // תא A1
+        SCell formulaCell = new SCell("=A1");
+        Object result = formulaCell.computeFormula("=A1", sheet);
+        assertEquals(5.0, result);
+    }
+
+    @Test
+    public void testComputeFormulaComplex() {
+        Ex2Sheet sheet = new Ex2Sheet(3, 3);
+        sheet.set(0, 0, "5"); // תא A1
+        sheet.set(1, 0, "10"); // תא B1
+        SCell formulaCell = new SCell("=A1+B1");
+        Object result = formulaCell.computeFormula("=A1+B1", sheet);
+        assertEquals(15.0, result);
+    }
+
+    @Test
+    public void testComputeFormulaWithCycle() {
+        Ex2Sheet sheet = new Ex2Sheet(3, 3);
+        sheet.set(0, 0, "=B1"); // תא A1
+        sheet.set(1, 0, "=A1"); // תא B1
+        SCell formulaCell = new SCell("=A1");
+        Object result = formulaCell.computeFormula("=A1", sheet);
+        assertEquals(Ex2Utils.ERR_CYCLE_FORM, result);
+    }
+
+    @Test
+    public void testComputeInvalidFormula() {
+        Ex2Sheet sheet = new Ex2Sheet(3, 3);
+        SCell formulaCell = new SCell("=A1+");
+        Object result = formulaCell.computeFormula("=A1+", sheet);
+        assertEquals(Ex2Utils.ERR_FORM_FORMAT, result);
+    }
+
+    @Test
+    public void testEvaluateExpression() {
+        Ex2Sheet sheet = new Ex2Sheet(3, 3);
+        sheet.set(0, 0, "5"); // תא A1
+        sheet.set(1, 0, "10"); // תא B1
+
+        Stack<String> computationPath = new Stack<>();
+        Set<String> visitedCells = new HashSet<>();
+        String data = "A1";
+        Object result = SCell.computeFormulaWithCycleDetection("=A1+B1", sheet, visitedCells, computationPath, data);
+        assertEquals(15.0, result);
+    }
+
+    @Test
+    public void testEmptyCell() {
+        Ex2Sheet sheet = new Ex2Sheet(3, 3);
+        SCell emptyCell = new SCell("");
+        assertEquals(Ex2Utils.TEXT, emptyCell.getType());
     }
 }
