@@ -1,0 +1,243 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="d85d48ca-3d33-4f3c-bfc3-62201f9b0192" name="Changes" comment="Finel Updte">
+      <change beforePath="$PROJECT_DIR$/Ex2Tests.java" beforeDir="false" afterPath="$PROJECT_DIR$/Ex2Tests.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SCell.java" beforeDir="false" afterPath="$PROJECT_DIR$/SCell.java" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/../.." />
+  </component>
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;Orelsalem21&quot;
+  }
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/Orelsalem21/Ex2.git&quot;,
+    &quot;accountId&quot;: &quot;648e45c5-dfea-4b8a-a598-d98e373d4dbd&quot;
+  }
+}</component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 7
+}</component>
+  <component name="ProjectId" id="2rWH9l6SLdtza4u7SpSdjft9UqS" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Application.Ex2GUI.executor": "Run",
+    "Downloaded.Files.Path.Enabled": "false",
+    "JUnit.Ex2Tests.executor": "Run",
+    "JUnit.Ex2Tests.testAllCellTypes.executor": "Run",
+    "JUnit.Ex2Tests.testBracketValidation.executor": "Run",
+    "JUnit.Ex2Tests.testBracketsWithCellReferences.executor": "Run",
+    "JUnit.Ex2Tests.testCellErrorRecovery.executor": "Run",
+    "JUnit.Ex2Tests.testCellTypesAndConstants.executor": "Run",
+    "JUnit.Ex2Tests.testCellValuesAndTypes.executor": "Run",
+    "JUnit.Ex2Tests.testComplexBracketExpressions.executor": "Run",
+    "JUnit.Ex2Tests.testComplexFormulas.executor": "Run",
+    "JUnit.Ex2Tests.testComputeForm.executor": "Run",
+    "JUnit.Ex2Tests.testComputeFormNegativeValues.executor": "Run",
+    "JUnit.Ex2Tests.testCyclicReferenceDetection.executor": "Run",
+    "JUnit.Ex2Tests.testDependentCellsUpdate.executor": "Run",
+    "JUnit.Ex2Tests.testDepthCalculation.executor": "Run",
+    "JUnit.Ex2Tests.testDivisionByZeroWithBrackets.executor": "Run",
+    "JUnit.Ex2Tests.testEval.executor": "Run",
+    "JUnit.Ex2Tests.testEvaluateCellAndValue.executor": "Run",
+    "JUnit.Ex2Tests.testFormulaWithEmptyReference.executor": "Run",
+    "JUnit.Ex2Tests.testGetReferences.executor": "Run",
+    "JUnit.Ex2Tests.testInvalidBracketPlacement.executor": "Run",
+    "JUnit.Ex2Tests.testInvalidBrackets.executor": "Run",
+    "JUnit.Ex2Tests.testInvalidParentheses.executor": "Run",
+    "JUnit.Ex2Tests.testIsForm.executor": "Run",
+    "JUnit.Ex2Tests.testIsNumber.executor": "Run",
+    "JUnit.Ex2Tests.testNegativeValues.executor": "Run",
+    "JUnit.Ex2Tests.testNumberDisplay.executor": "Run",
+    "JUnit.Ex2Tests.testNumberType.executor": "Run",
+    "JUnit.Ex2Tests.testParenthesesHandling.executor": "Run",
+    "JUnit.Ex2Tests.testSCellTypesAndValues.executor": "Run",
+    "JUnit.Ex2Tests.testSaveAndLoad.executor": "Run",
+    "JUnit.Ex2Tests.testSimpleCyclicReference.executor": "Run",
+    "JUnit.Ex2Tests.testUpdateDependentCells.executor": "Run",
+    "JUnit.Ex2Tests.testValueForNumbers.executor": "Run",
+    "Repository.Attach.Annotations": "false",
+    "Repository.Attach.JavaDocs": "false",
+    "Repository.Attach.Sources": "false",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "git-widget-placeholder": "master",
+    "kotlin-language-version-configured": "true",
+    "last_opened_file_path": "C:/Users/user/Desktop",
+    "project.structure.last.edited": "Modules",
+    "project.structure.proportion": "0.15",
+    "project.structure.side.proportion": "0.2",
+    "settings.editor.selected.configurable": "reference.settingsdialog.IDE.editor.colors.Java"
+  }
+}]]></component>
+  <component name="RunManager" selected="Application.Ex2GUI">
+    <configuration name="Ex2GUI" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="Ex2GUI" />
+      <module name="src" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Ex2Tests" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="src" />
+      <option name="PACKAGE_NAME" value="" />
+      <option name="MAIN_CLASS_NAME" value="Ex2Tests" />
+      <option name="TEST_OBJECT" value="class" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Ex2Tests.testComplexFormulas" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="src" />
+      <option name="PACKAGE_NAME" value="" />
+      <option name="MAIN_CLASS_NAME" value="Ex2Tests" />
+      <option name="METHOD_NAME" value="testComplexFormulas" />
+      <option name="TEST_OBJECT" value="method" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Ex2Tests.testInvalidBrackets" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="src" />
+      <option name="PACKAGE_NAME" value="" />
+      <option name="MAIN_CLASS_NAME" value="Ex2Tests" />
+      <option name="METHOD_NAME" value="testInvalidBrackets" />
+      <option name="TEST_OBJECT" value="method" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Ex2Tests.testIsForm" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="src" />
+      <option name="PACKAGE_NAME" value="" />
+      <option name="MAIN_CLASS_NAME" value="Ex2Tests" />
+      <option name="METHOD_NAME" value="testIsForm" />
+      <option name="TEST_OBJECT" value="method" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Application.Ex2GUI" />
+        <item itemvalue="JUnit.Ex2Tests" />
+        <item itemvalue="JUnit.Ex2Tests.testComplexFormulas" />
+        <item itemvalue="JUnit.Ex2Tests.testIsForm" />
+        <item itemvalue="JUnit.Ex2Tests.testInvalidBrackets" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="d85d48ca-3d33-4f3c-bfc3-62201f9b0192" name="Changes" comment="" />
+      <created>1736667762367</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1736667762367</updated>
+    </task>
+    <task id="LOCAL‎-00001" summary="Final update,/0">
+      <option name="closed" value="true" />
+      <created>1736677465904</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL‎-00001" />
+      <option name="project" value="LOCAL‎" />
+      <updated>1736677465905</updated>
+    </task>
+    <task id="LOCAL‎-00002" summary="update test">
+      <option name="closed" value="true" />
+      <created>1736706615065</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL‎-00002" />
+      <option name="project" value="LOCAL‎" />
+      <updated>1736706615065</updated>
+    </task>
+    <task id="LOCAL‎-00003" summary="update test">
+      <option name="closed" value="true" />
+      <created>1736755834142</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL‎-00003" />
+      <option name="project" value="LOCAL‎" />
+      <updated>1736755834142</updated>
+    </task>
+    <task id="LOCAL‎-00004" summary="update test+ documentation">
+      <option name="closed" value="true" />
+      <created>1736759229309</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL‎-00004" />
+      <option name="project" value="LOCAL‎" />
+      <updated>1736759229309</updated>
+    </task>
+    <task id="LOCAL‎-00005" summary="update test+ documentation">
+      <option name="closed" value="true" />
+      <created>1736760904339</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL‎-00005" />
+      <option name="project" value="LOCAL‎" />
+      <updated>1736760904339</updated>
+    </task>
+    <task id="LOCAL‎-00006" summary="update test + )()()">
+      <option name="closed" value="true" />
+      <created>1736782502675</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL‎-00006" />
+      <option name="project" value="LOCAL‎" />
+      <updated>1736782502675</updated>
+    </task>
+    <task id="LOCAL‎-00007" summary="Finel Updte">
+      <option name="closed" value="true" />
+      <created>1736787902945</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL‎-00007" />
+      <option name="project" value="LOCAL‎" />
+      <updated>1736787902945</updated>
+    </task>
+    <task id="LOCAL‎-00008" summary="Finel Updte">
+      <option name="closed" value="true" />
+      <created>1736789841004</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL‎-00008" />
+      <option name="project" value="LOCAL‎" />
+      <updated>1736789841004</updated>
+    </task>
+    <option name="localTasksCounter" value="9" />
+    <servers />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="Final update, hopefully" />
+    <MESSAGE value="Final update,/0" />
+    <MESSAGE value="update test" />
+    <MESSAGE value="update test+ documentation" />
+    <MESSAGE value="update test + )()()" />
+    <MESSAGE value="Finel Updte" />
+    <option name="LAST_COMMIT_MESSAGE" value="Finel Updte" />
+  </component>
+</project>
