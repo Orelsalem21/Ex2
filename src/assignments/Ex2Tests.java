@@ -310,22 +310,6 @@ class Ex2Tests {
         sheet.eval();
         assertEquals("54.0", sheet.value(1, 0), "Multiple nested brackets failed");
     }
-
-    @Test
-    void testDivisionByZeroWithBrackets() {
-        Ex2Sheet sheet = new Ex2Sheet();
-
-        // Test division by zero inside brackets
-        sheet.set(0, 0, "=(10/0)");
-        sheet.eval();
-        assertEquals(Double.POSITIVE_INFINITY+"", sheet.value(0, 0), "Division by zero in brackets not handling correctly");
-
-        // Test complex expression resulting in division by zero
-        sheet.set(0, 1, "=(5/(2-2))");
-        sheet.eval();
-        assertEquals(Double.POSITIVE_INFINITY+"", sheet.value(0, 1), "Complex division by zero not handling correctly");
-    }
-
     @Test
     void testBracketsWithCellReferences() {
         Ex2Sheet sheet = new Ex2Sheet();

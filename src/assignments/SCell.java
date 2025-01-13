@@ -260,7 +260,7 @@ public class SCell implements Cell {
             boolean mins = false;
             if (expression.charAt(0) == '-') {
                 mins = true;
-                expression = expression.substring(1);
+                expression = expression.substring(0);
             }
             if (isLetter(expression.charAt(0))) {
                 SCell cell = (SCell) this.sheet.get(expression);
@@ -308,41 +308,50 @@ public class SCell implements Cell {
         }
 
         // Handle arithmetic operations in order of precedence
-        int additionIndex = expression.indexOf("+");
+        int subIndex = findLastIndex(expression, "-");
+        if (subIndex != -1) {
+            return computeForm(expression.substring(0, subIndex)) -
+                    computeForm(expression.substring(subIndex + 1));
+        }
+
+        int additionIndex = findLastIndex(expression, "+");
         if (additionIndex != -1) {
             return computeForm(expression.substring(0, additionIndex)) +
                     computeForm(expression.substring(additionIndex + 1));
         }
 
-        int subIndex = expression.indexOf("-");
-        if (subIndex != -1) {
-            if (subIndex == 0 && !isOp(expression.charAt(subIndex + 1))) {
-                return -computeForm(expression.substring(subIndex + 1));
-            } else if (!isOp(expression.charAt(subIndex - 1))) {
-                return computeForm(expression.substring(0, subIndex)) -
-                        computeForm(expression.substring(subIndex + 1));
-            }
-        }
-
-        int multiIndex = expression.indexOf("*");
+        int multiIndex = findLastIndex(expression, "*");
         if (multiIndex != -1) {
             return computeForm(expression.substring(0, multiIndex)) *
                     computeForm(expression.substring(multiIndex + 1));
         }
 
-        int divisionIndex = expression.indexOf("/");
+        int divisionIndex = findLastIndex(expression, "/");
         if (divisionIndex != -1) {
             double divisor = computeForm(expression.substring(divisionIndex + 1));
             if (divisor == 0) {
                 return Double.POSITIVE_INFINITY;
             }
-            System.out.println("Computing formula for: " + this.entry.getIndex());
-            System.out.println("Expression: " + expression);
             return computeForm(expression.substring(0, divisionIndex)) / divisor;
         }
 
         throw new ErrorForm("InvalidExpression");
     }
+
+    // Helper method to find the last occurrence of an operator outside of parentheses
+    private int findLastIndex(String expression, String operator) {
+        int counter = 0;
+        for (int i = expression.length() - 1; i >= 0; i--) {
+            char c = expression.charAt(i);
+            if (c == ')') counter++;
+            if (c == '(') counter--;
+            if (counter == 0 && expression.substring(i, i + 1).equals(operator)) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
     public static boolean isOp(char c) {
         String ops = "+-/*";
         return ops.contains(String.valueOf(c));
