@@ -202,4 +202,46 @@ class Ex2Tests {
         assertEquals(Ex2Utils.ERR_FORM_FORMAT, sheet.get(2, 2).getType(), "Type mismatch for cell (2, 2)");
         assertEquals(Ex2Utils.TEXT, sheet.get(3, 3).getType(), "Type mismatch for cell (3, 3)");
     }
+    @Test
+    void testSimpleCyclicReference() {
+        Ex2Sheet sheet = new Ex2Sheet();
+
+        // Test Case 1: Create cyclic reference
+        sheet.set(2, 0, "=D0");  // Set C0=D0
+        sheet.eval();
+        sheet.set(3, 0, "=C0");  // Set D0=C0
+        sheet.eval();
+
+        // Check cycle detection
+        assertEquals(Ex2Utils.ERR_CYCLE_FORM, sheet.get(2, 0).getType(), "C0 should detect cycle");
+        assertEquals(Ex2Utils.ERR_CYCLE, sheet.value(2, 0), "C0 should show ERR_CYCLE");
+        assertEquals(Ex2Utils.ERR_CYCLE_FORM, sheet.get(3, 0).getType(), "D0 should detect cycle");
+        assertEquals(Ex2Utils.ERR_CYCLE, sheet.value(3, 0), "D0 should show ERR_CYCLE");
+
+        // Test Case 2: Fix cycle and verify recovery
+        sheet.set(2, 0, "42");  // Fix C0 with a number
+        sheet.eval();
+        assertEquals(Ex2Utils.NUMBER, sheet.get(2, 0).getType(), "C0 should be number type");
+        assertEquals("42.0", sheet.value(2, 0), "C0 should show 42.0");
+        assertEquals(Ex2Utils.FORM, sheet.get(3, 0).getType(), "D0 should be formula type");
+        assertEquals("42.0", sheet.value(3, 0), "D0 should show 42.0");
+    }
+    @Test
+    void testNumberType() {
+        Ex2Sheet sheet = new Ex2Sheet();
+        sheet.set(5, 0, "6");
+        sheet.eval();
+        assertEquals(Ex2Utils.NUMBER, sheet.get(5, 0).getType(), "Should be NUMBER type");
+        assertEquals("6.0", sheet.value(5, 0), "Value should be 6.0");
+    }
+    @Test
+    void testNumberDisplay() {
+        Ex2Sheet sheet = new Ex2Sheet();
+        sheet.set(5, 0, "9");
+        sheet.eval();
+        Cell cell = sheet.get(5, 0);
+        assertEquals(Ex2Utils.NUMBER, cell.getType(), "Cell type should be NUMBER");
+        assertEquals("9.0", sheet.value(5, 0), "Value should be 9.0");
+        assertNotEquals(Ex2Utils.TEXT, cell.getType(), "Cell should not be TEXT type");
+    }
 }

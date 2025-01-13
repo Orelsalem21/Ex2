@@ -112,7 +112,9 @@ public class Ex2Sheet implements Sheet {
                 if (table[i][j] != null) {
                     SCell cell = (SCell)table[i][j];
                     cell.resetVisited();
-                    if (cell.getType() == Ex2Utils.ERR_CYCLE_FORM) {
+                    // Reset error states
+                    if (cell.getType() == Ex2Utils.ERR_CYCLE_FORM ||
+                            cell.getType() == Ex2Utils.ERR_FORM_FORMAT) {
                         cell.setType(Ex2Utils.FORM);
                     }
                 }
@@ -157,6 +159,10 @@ public class Ex2Sheet implements Sheet {
     private void evaluateCell(int x, int y) {
         SCell cell = (SCell)get(x, y);
         if (cell == null) return;
+
+        cell.setType(Ex2Utils.TEXT);
+        cell.setValue("");
+        cell.resetVisited();
 
         String str = cell.getData();
         if (str.isEmpty()) {
