@@ -251,47 +251,73 @@ public class SCell implements Cell {
 
         str = str.substring(1);
 
-        // Validate characters and cell references
-        for (int i = 0; i < str.length(); i++) {
-            if (!validChars(str.charAt(i)) && !isLetter(str.charAt(i)) && !isDigit(str.charAt(i))) {
-                return false;
-            }
-            if (isLetter(str.charAt(i))) {
-                int index = closestOpOrBrackets(str, i);
-                if (index == -1) {
-                    return false;
-                }
-                CellEntry current = new CellEntry(str.substring(i, index));
-                if (!current.isValid()) {
-                    return false;
-                }
-            }
-        }
-
-        // Check brackets count and order
-        int bracketsCount = 0;
-        char c0 = str.charAt(0);
-        char cEnd = str.charAt(str.length() - 1);
-
-        if ((isOp(c0) && c0 != '-') || isOp(cEnd) || isLetter(cEnd)) {
+        // בדיקה שהנוסחה לא מסתיימת באופרטור
+        if (str.isEmpty() || isOp(str.charAt(str.length() - 1))) {
             return false;
         }
 
+        // בדיקה לסוגריים פתוחים או לא מאוזנים
+        if (str.contains("(")) {
+            String noQuotes = str.replaceAll("[^()]", "");
+            if (noQuotes.length() % 2 != 0) {
+                return false;
+            }
+        }
+
+        // Validate characters and cell references
+        for (int i = 0; i < str.length(); i++) {
+            char currentChar = str.charAt(i);
+
+            // בדיקת תווים לא חוקיים
+            if (!validChars(currentChar) && !isLetter(currentChar) && !isDigit(currentChar)
+                    && currentChar != '(' && currentChar != ')') {
+                return false;
+            }
+
+            // בדיקת תקינות תאים
+            if (isLetter(currentChar)) {
+                int index = closestOpOrBrackets(str, i);
+                if (index == -1 || index == i) {
+                    return false;
+                }
+                String cellRef = str.substring(i, index);
+                CellEntry current = new CellEntry(cellRef);
+                if (!current.isValid()) {
+                    return false;
+                }
+                i = index - 1;  // קפיצה קדימה לסוף הפניית התא
+                continue;
+            }
+
+            // בדיקת אופרטורים רצופים
+            if (isOp(currentChar) && i < str.length() - 1) {
+                char nextChar = str.charAt(i + 1);
+                if (isOp(nextChar) && currentChar != '-') {
+                    return false;
+                }
+            }
+        }
+
+        // בדיקת סוגריים וסדר פעולות
+        int bracketsCount = 0;
         for (int i = 0; i < str.length(); i++) {
             char c = str.charAt(i);
 
             if (c == '(') {
                 bracketsCount++;
+                // בדיקה לסוגריים ריקים
+                if (i < str.length() - 1 && str.charAt(i + 1) == ')') {
+                    return false;
+                }
             } else if (c == ')') {
                 bracketsCount--;
+                // בדיקה לסוגריים לא מאוזנים
+                if (bracketsCount < 0) {
+                    return false;
+                }
             }
 
-            // Check for invalid brackets order at any point
-            if (bracketsCount < 0) {
-                return false;
-            }
-
-            // Check for operators around brackets
+            // בדיקת תקינות אופרטורים ליד סוגריים
             if (i < str.length() - 1) {
                 char next = str.charAt(i + 1);
                 if (isOp(c) && (next == ')' || isOp(next))) {
@@ -300,8 +326,20 @@ public class SCell implements Cell {
             }
         }
 
-        // Final brackets count must be 0
-        return bracketsCount == 0;
+        // בדיקה סופית לסוגריים
+        if (bracketsCount != 0) {
+            return false;
+        }
+
+        // בדיקה שהנוסחה לא מסתיימת באופן לא תקין
+        String trimmed = str.trim();
+        if (trimmed.endsWith("(") || trimmed.endsWith("+") ||
+                trimmed.endsWith("-") || trimmed.endsWith("*") ||
+                trimmed.endsWith("/")) {
+            return false;
+        }
+
+        return true;
     }
 
     /**
@@ -321,29 +359,112 @@ public class SCell implements Cell {
             expression = expression.substring(1);
         }
 
-        // Handle nested brackets recursively
-        while (expression.contains("(")) {
-            int openIndex = expression.lastIndexOf("("); // Start from innermost brackets
+        // Handle binary operations first (before brackets)
+        int lastIndex = -1;
+        char lastOp = ' ';
+
+        // Find last valid operator (ignoring operators inside brackets)
+        int bracketCount = 0;
+        for (int i = expression.length() - 1; i >= 0; i--) {
+            char c = expression.charAt(i);
+            if (c == ')') bracketCount++;
+            if (c == '(') bracketCount--;
+            if (bracketCount == 0 && (c == '+' || c == '-' || c == '*' || c == '/')) {
+                // For minus, check if it's a binary operator and not unary
+                if (c == '-' && i > 0 && !isOp(expression.charAt(i-1))) {
+                    lastIndex = i;
+                    lastOp = c;
+                    break;
+                }
+                // For other operators
+                if (c != '-') {
+                    lastIndex = i;
+                    lastOp = c;
+                    break;
+                }
+            }
+        }
+
+        // Handle binary operations
+        if (lastIndex >= 0) {
+            String leftPart = expression.substring(0, lastIndex);
+            String rightPart = expression.substring(lastIndex + 1);
+
+            // If left part is empty (like in case of "10-3"), treat it as "0"
+            if (leftPart.isEmpty()) leftPart = "0";
+
+            switch(lastOp) {
+                case '+': return computeForm(leftPart) + computeForm(rightPart);
+                case '-': return computeForm(leftPart) - computeForm(rightPart);
+                case '*': return computeForm(leftPart) * computeForm(rightPart);
+                case '/':
+                    double divisor = computeForm(rightPart);
+                    if (divisor == 0) return Double.POSITIVE_INFINITY;
+                    return computeForm(leftPart) / divisor;
+            }
+        }
+
+        // Handle brackets
+        if (expression.contains("(")) {
+            int openIndex = expression.indexOf("(");
             int closeIndex = correctClosedBracket(expression, openIndex);
             if (closeIndex == -1) {
                 throw new ErrorForm("InvalidBrackets");
             }
 
-            // Calculate sub-expression inside brackets
-            String subExpression = expression.substring(openIndex + 1, closeIndex);
-            double result = computeForm(subExpression);
+            String before = expression.substring(0, openIndex);
+            String inside = expression.substring(openIndex + 1, closeIndex);
+            String after = expression.substring(closeIndex + 1);
 
-            // Replace bracketed expression with result
-            expression = expression.substring(0, openIndex) + result +
-                    expression.substring(closeIndex + 1);
+            double resultInside = computeForm(inside);
+
+            // Handle negative before parentheses
+            if (before.endsWith("-")) {
+                resultInside = -resultInside;
+                before = before.substring(0, before.length() - 1);
+            }
+
+            expression = before + resultInside + after;
+            return computeForm(expression);
         }
 
         if (noOps(expression)) {
-            boolean mins = false;
+            // Handle single negative number or negative cell reference
             if (expression.charAt(0) == '-') {
-                mins = true;
-                expression = expression.substring(0);
+                String rest = expression.substring(1);
+                if (isLetter(rest.charAt(0))) {
+                    SCell cell = (SCell) this.sheet.get(rest);
+                    if (cell == null || cell.getData().isEmpty()) {
+                        throw new ErrorForm("NoCellFound");
+                    }
+
+                    ArrayList<String> cyclePath = new ArrayList<>();
+                    if (cell.detectCycle(cyclePath)) {
+                        throw new ErrorCycle("ErrorCycle");
+                    }
+
+                    int cellType = cell.getType();
+                    if (cellType == Ex2Utils.ERR_CYCLE_FORM) {
+                        throw new ErrorCycle("ErrorCycle");
+                    } else if (cellType == Ex2Utils.ERR_FORM_FORMAT) {
+                        throw new ErrorForm("ErrorForm");
+                    } else if (cellType == Ex2Utils.TEXT) {
+                        throw new ErrorForm("TextCell");
+                    }
+
+                    if (cellType == Ex2Utils.NUMBER) {
+                        return -Double.parseDouble(cell.getData());
+                    } else {
+                        return -cell.computeForm(cell.getData());
+                    }
+                }
+                try {
+                    return -Double.parseDouble(rest);
+                } catch (NumberFormatException e) {
+                    throw new ErrorForm("InvalidNumber");
+                }
             }
+
             if (isLetter(expression.charAt(0))) {
                 SCell cell = (SCell) this.sheet.get(expression);
                 if (cell == null || cell.getData().isEmpty()) {
@@ -364,21 +485,10 @@ public class SCell implements Cell {
                     throw new ErrorForm("TextCell");
                 }
 
-                String cellData = cell.getData();
-                if (cellData.isEmpty()) {
-                    return 0;
-                }
-
-                try {
-                    double result;
-                    if (cellType == Ex2Utils.NUMBER) {
-                        result = Double.parseDouble(cellData);
-                    } else {
-                        result = cell.computeForm(cellData);
-                    }
-                    return mins ? -result : result;
-                } catch (NumberFormatException e) {
-                    throw new ErrorForm("InvalidNumber");
+                if (cellType == Ex2Utils.NUMBER) {
+                    return Double.parseDouble(cell.getData());
+                } else {
+                    return cell.computeForm(cell.getData());
                 }
             }
 
@@ -389,49 +499,43 @@ public class SCell implements Cell {
             }
         }
 
-        // Handle arithmetic operations in order of precedence
-        int subIndex = findLastIndex(expression, "-");
-        if (subIndex != -1) {
-            return computeForm(expression.substring(0, subIndex)) -
-                    computeForm(expression.substring(subIndex + 1));
-        }
-
-        int additionIndex = findLastIndex(expression, "+");
-        if (additionIndex != -1) {
-            return computeForm(expression.substring(0, additionIndex)) +
-                    computeForm(expression.substring(additionIndex + 1));
-        }
-
-        int multiIndex = findLastIndex(expression, "*");
-        if (multiIndex != -1) {
-            return computeForm(expression.substring(0, multiIndex)) *
-                    computeForm(expression.substring(multiIndex + 1));
-        }
-
-        int divisionIndex = findLastIndex(expression, "/");
-        if (divisionIndex != -1) {
-            double divisor = computeForm(expression.substring(divisionIndex + 1));
-            if (divisor == 0) {
-                return Double.POSITIVE_INFINITY;
-            }
-            return computeForm(expression.substring(0, divisionIndex)) / divisor;
-        }
-
         throw new ErrorForm("InvalidExpression");
     }
-
-    // Helper method to find the last occurrence of an operator outside of parentheses
     private int findLastIndex(String expression, String operator) {
-        int counter = 0;
         for (int i = expression.length() - 1; i >= 0; i--) {
-            char c = expression.charAt(i);
-            if (c == ')') counter++;
-            if (c == '(') counter--;
-            if (counter == 0 && expression.substring(i, i + 1).equals(operator)) {
+            if (expression.charAt(i) == operator.charAt(0)) {
+                if (operator.equals("-") && i == 0) {
+                    continue;
+                }
                 return i;
             }
         }
         return -1;
+    }
+    private int findLastOperator(String expression, char operator) {
+        int bracketCount = 0;
+        int lastIndex = -1;
+
+        for (int i = 0; i < expression.length(); i++) {
+            char c = expression.charAt(i);
+
+            if (c == '(') {
+                bracketCount++;
+            } else if (c == ')') {
+                bracketCount--;
+            } else if (bracketCount == 0 && c == operator) {
+                // For minus, make sure it's not a unary minus
+                if (operator == '-') {
+                    // Check if it's not at the start and not after another operator
+                    if (i > 0 && !isOp(expression.charAt(i-1))) {
+                        lastIndex = i;
+                    }
+                } else {
+                    lastIndex = i;
+                }
+            }
+        }
+        return lastIndex;
     }
 
     /**
@@ -452,21 +556,18 @@ public class SCell implements Cell {
      * @return true if the string contains no operators, false otherwise.
      */
     public static boolean noOps(String str) {
+        if (str.isEmpty()) return true;
+
         for (int i = 0; i < str.length(); i++) {
-            if (isOp(str.charAt(i))) {
-                if (str.charAt(i) != '-') {
-                    return false;
-                }
-            }
-        }
-        if(str.indexOf("-") != str.lastIndexOf("-")){
-            return false;
-        }
-        if(str.contains("-")){
-            if(str.indexOf("-") != 0){
+            if (isOp(str.charAt(i)) && str.charAt(i) != '-') {
                 return false;
             }
         }
+
+        if (str.charAt(0) == '-') {
+            return noOps(str.substring(1));
+        }
+
         return true;
     }
 

@@ -329,4 +329,150 @@ class Ex2Tests {
         sheet.eval();
         assertEquals("25.0", sheet.value(1, 1), "Complex cell reference with brackets failed");
     }
+    @Test
+    void testComputeFormNegativeValues() throws Exception {
+        Ex2Sheet sheet = new Ex2Sheet();
+        sheet.set(0, 0, "=-5");
+        sheet.eval();
+        assertEquals("-5.0", sheet.value(0, 0), "Negative value computation failed.");
+    }
+
+    @Test
+    void testComputeFormWithoutParentheses() throws Exception {
+        Ex2Sheet sheet = new Ex2Sheet();
+        sheet.set(0, 0, "=2+3");
+        sheet.eval();
+        assertEquals("5.0", sheet.value(0, 0), "Computation without parentheses failed.");
+    }
+
+    @Test
+    void testComputeFormDivisionByZero() throws Exception {
+        Ex2Sheet sheet = new Ex2Sheet();
+        sheet.set(0, 0, "=1/0");
+        sheet.eval();
+        assertEquals("Infinity", sheet.value(0, 0), "Division by zero handling failed.");
+    }
+
+    @Test
+    void testComputeFormExtraParentheses() throws Exception {
+        Ex2Sheet sheet = new Ex2Sheet();
+        sheet.set(0, 0, "=(2+3))");
+        sheet.eval();
+        assertEquals(Ex2Utils.ERR_FORM, sheet.value(0, 0), "Extra parentheses handling failed.");
+    }
+    @Test
+    void testDepthWithDependencies() {
+        Ex2Sheet sheet = new Ex2Sheet();
+        sheet.set(0, 0, "1");
+        sheet.set(0, 1, "=A0+2");
+        sheet.set(0, 2, "=A1*2");
+
+        int[][] depth = sheet.depth();
+
+        assertEquals(0, depth[0][0], "Depth of simple number cell failed.");
+        assertEquals(1, depth[0][1], "Depth of cell with one dependency failed.");
+        assertEquals(2, depth[0][2], "Depth of cell with nested dependencies failed.");
+    }
+
+    @Test
+    void testDepthWithCycles() {
+        Ex2Sheet sheet = new Ex2Sheet();
+        sheet.set(0, 0, "=A1");
+        sheet.set(0, 1, "=A0");
+
+        int[][] depth = sheet.depth();
+
+        assertEquals(-1, depth[0][0], "Depth should detect cycle.");
+        assertEquals(-1, depth[0][1], "Depth should detect cycle.");
+    }
+    @Test
+    void testMixedCellTypes() throws Exception {
+        Ex2Sheet sheet = new Ex2Sheet();
+        sheet.set(0, 0, "Hello"); // Text
+        sheet.set(1, 1, "42"); // Number
+        sheet.set(2, 2, "=1+1"); // Formula
+        sheet.set(3, 3, "=X"); // Invalid Formula
+
+        sheet.eval();
+
+        // Check values
+        assertEquals("Hello", sheet.value(0, 0), "Text cell value mismatch.");
+        assertEquals("42.0", sheet.value(1, 1), "Number cell value mismatch.");
+        assertEquals("2.0", sheet.value(2, 2), "Formula cell value mismatch.");
+        assertEquals(Ex2Utils.ERR_FORM, sheet.value(3, 3), "Invalid formula cell value mismatch.");
+
+        // Check types
+        assertEquals(Ex2Utils.TEXT, sheet.get(0, 0).getType(), "Text cell type mismatch.");
+        assertEquals(Ex2Utils.NUMBER, sheet.get(1, 1).getType(), "Number cell type mismatch.");
+        assertEquals(Ex2Utils.FORM, sheet.get(2, 2).getType(), "Formula cell type mismatch.");
+        assertEquals(Ex2Utils.ERR_FORM_FORMAT, sheet.get(3, 3).getType(), "Invalid formula cell type mismatch.");
+    }
+    @Test
+    void testComputeFormNegativeOutsideParentheses() throws Exception {
+        Ex2Sheet sheet = new Ex2Sheet();
+        sheet.set(0, 0, "=-3+2");
+        sheet.eval();
+        assertEquals("-1.0", sheet.value(0, 0), "Negative value outside parentheses computation failed.");
+
+        sheet.set(1, 1, "=5-(-3)");
+        sheet.eval();
+        assertEquals("8.0", sheet.value(1, 1), "Subtraction with negative value failed.");
+    }
+
+    @Test
+    void testComputeFormNegativeInsideParentheses() throws Exception {
+        Ex2Sheet sheet = new Ex2Sheet();
+        sheet.set(0, 0, "=(-3)+2");
+        sheet.eval();
+        assertEquals("-1.0", sheet.value(0, 0), "Negative value inside parentheses computation failed.");
+
+        sheet.set(1, 1, "=5+(-3)");
+        sheet.eval();
+        assertEquals("2.0", sheet.value(1, 1), "Addition with negative value inside parentheses failed.");
+
+        sheet.set(2, 2, "=(-3)*(-2)");
+        sheet.eval();
+        assertEquals("6.0", sheet.value(2, 2), "Multiplication with negative values inside parentheses failed.");
+    }
+
+    @Test
+    void testComputeFormMixedNegatives() throws Exception {
+        Ex2Sheet sheet = new Ex2Sheet();
+        sheet.set(0, 0, "=(-2)-3");
+        sheet.eval();
+        assertEquals("-5.0", sheet.value(0, 0), "Mixed negative and positive values computation failed.");
+
+        sheet.set(1, 1, "=(-2)-(-3)");
+        sheet.eval();
+        assertEquals("1.0", sheet.value(1, 1), "Subtraction of negative values failed.");
+
+        sheet.set(2, 2, "=-((-2)+3)");
+        sheet.eval();
+        assertEquals("-1.0", sheet.value(2, 2), "Negative outside and inside parentheses computation failed.");
+    }
+    @Test
+    void testComplexFormulas() {
+        Ex2Sheet sheet = new Ex2Sheet();
+
+        // Test 1
+        sheet.set(0, 0, "=((-2)+(-3))*((-1)+5)");
+        sheet.eval();
+        assertEquals("-20.0", sheet.value(0, 0));  // (-2)+(-3)=-5, (-1)+5=4, -5*4=-20
+
+
+        // Test 2
+        sheet.set(2, 0, "=((10-3)-(2+1))");
+        sheet.eval();
+        assertEquals("4.0", sheet.value(2, 0));  // 10-3=7, 2+1=3, 7-3=4
+
+        // Test 3
+        sheet.set(0, 1, "=-((-2)+3)");
+        sheet.eval();
+        assertEquals("-1.0", sheet.value(0, 1));  // (-2)+3=1, -(1)=-1
+
+        // Test 4
+        sheet.set(2, 1, "=((2*3)+(4*(-2)))");
+        sheet.eval();
+        assertEquals("-2.0", sheet.value(2, 1));  // 2*3=6, 4*(-2)=-8, 6+(-8)=-2
+    }
 }
