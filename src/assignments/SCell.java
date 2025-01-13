@@ -1,11 +1,15 @@
 import java.util.ArrayList;
 import java.util.Stack;
 
+/**
+ * Represents a cell in the spreadsheet with additional functionality for handling formulas and cycles.
+ * Supports various cell types (Text, Number, Formula) and handles references and cycle detection.
+ */
 public class SCell implements Cell {
     private String line;
     private String value = "";
     private int type;
-    //1 - Text, 2 - Number, 3 - Form, -2 - Err form, -1 - Err cycle\Err
+    // 1 - Text, 2 - Number, 3 - Form, -2 - Err form, -1 - Err cycle\Err
     private Ex2Sheet sheet;
     public CellEntry entry;
     private int order;
@@ -13,62 +17,120 @@ public class SCell implements Cell {
     private boolean isCalculating = false;
     private int calculatedOrder = -2;
 
+    /**
+     * Constructs an SCell with the specified data and associated sheet.
+     *
+     * @param s the initial data for the cell.
+     * @param sheet the associated spreadsheet.
+     */
     public SCell(String s, Ex2Sheet sheet) {
-        // Add your code here
         this.sheet = sheet;
         setData(s);
     }
 
+    /**
+     * Sets the value of the cell.
+     *
+     * @param v the value to set.
+     */
     public void setValue(String v){
         this.value = v;
     }
 
+    /**
+     * Sets the entry associated with the cell.
+     *
+     * @param e the CellEntry to associate with the cell.
+     */
     public void setEntry(CellEntry e){
         this.entry = e;
     }
 
-    //@Override
+    /**
+     * Returns a string representation of the cell's data.
+     *
+     * @return the string data of the cell.
+     */
     @Override
     public String toString() {
         return this.line;
     }
 
+    /**
+     * Sets the data for the cell.
+     *
+     * @param s the data to set.
+     */
     @Override
     public void setData(String s) {
         line = s;
     }
 
+    /**
+     * Retrieves the data of the cell.
+     *
+     * @return the data of the cell.
+     */
     @Override
     public String getData() {
         return line;
     }
 
+    /**
+     * Retrieves the type of the cell (Text, Number, Formula, Error).
+     *
+     * @return the type of the cell.
+     */
     @Override
     public int getType() {
         return type;
     }
 
+    /**
+     * Sets the type of the cell.
+     *
+     * @param t the type to set.
+     */
     @Override
     public void setType(int t) {
         type = t;
     }
 
+    /**
+     * Sets the order of the cell.
+     *
+     * @param t the order to set.
+     */
     @Override
     public void setOrder(int t) {
         this.order = t;
     }
 
+    /**
+     * Retrieves the order of the cell.
+     *
+     * @return the order of the cell.
+     */
     @Override
     public int getOrder() {
         return this.order;
     }
 
+    /**
+     * Resets the visited state of the cell, allowing it to be recalculated.
+     */
     public void resetVisited() {
         isVisited = false;
         isCalculating = false;
         calculatedOrder = -2;
     }
 
+    /**
+     * Detects if there is a cycle in the cell's references.
+     *
+     * @param path the current path of cell references.
+     * @return true if a cycle is detected, false otherwise.
+     */
     public boolean detectCycle(ArrayList<String> path) {
         if (isCalculating) {
             return true;
@@ -97,6 +159,11 @@ public class SCell implements Cell {
         return false;
     }
 
+    /**
+     * Calculates the order of the cell's references for evaluation.
+     *
+     * @return the calculated order, or -1 if a cycle is detected, or -2 if an error occurs.
+     */
     public int calcOrder() {
         if (calculatedOrder != -2) {
             return calculatedOrder;
@@ -161,6 +228,12 @@ public class SCell implements Cell {
         return max + 1;
     }
 
+    /**
+     * Determines if the given string is a valid formula.
+     *
+     * @param str the string to check.
+     * @return true if the string is a valid formula, false otherwise.
+     */
     public boolean isForm(String str) {
         if (str.isEmpty() || str.length() == 1) {
             return false;
@@ -230,6 +303,15 @@ public class SCell implements Cell {
         // Final brackets count must be 0
         return bracketsCount == 0;
     }
+
+    /**
+     * Computes the result of a formula expression.
+     *
+     * @param expression the formula to compute.
+     * @return the result of the formula.
+     * @throws ErrorForm if the formula is invalid.
+     * @throws ErrorCycle if a cycle is detected in the formula.
+     */
     public double computeForm(String expression) throws ErrorForm, ErrorCycle {
         expression = expression.replaceAll(" ", "").toUpperCase();
         if (expression.isEmpty()) {
@@ -352,11 +434,23 @@ public class SCell implements Cell {
         return -1;
     }
 
+    /**
+     * Checks if a character is a valid operator.
+     *
+     * @param c the character to check.
+     * @return true if the character is a valid operator, false otherwise.
+     */
     public static boolean isOp(char c) {
         String ops = "+-/*";
         return ops.contains(String.valueOf(c));
     }
 
+    /**
+     * Determines if a string contains no operators.
+     *
+     * @param str the string to check.
+     * @return true if the string contains no operators, false otherwise.
+     */
     public static boolean noOps(String str) {
         for (int i = 0; i < str.length(); i++) {
             if (isOp(str.charAt(i))) {
@@ -376,6 +470,13 @@ public class SCell implements Cell {
         return true;
     }
 
+    /**
+     * Finds the matching closing bracket for an open bracket.
+     *
+     * @param str the string containing the expression.
+     * @param index the index of the opening bracket.
+     * @return the index of the matching closing bracket, or -1 if not found.
+     */
     public static int correctClosedBracket(String str,int index){
         int count = 0;
         for (int i = index; i < str.length(); i++) {
@@ -391,21 +492,46 @@ public class SCell implements Cell {
         return -1;
     }
 
+    /**
+     * Checks if a character is a valid operation character.
+     *
+     * @param c the character to check.
+     * @return true if the character is a valid operation character.
+     */
     public static boolean validChars(char c){
-        String validChars = "+-*/.()";
+        String validChars = "+-*/.";
         return validChars.indexOf(c) != -1;
     }
 
+    /**
+     * Checks if a character is a valid letter (A-Z).
+     *
+     * @param c the character to check.
+     * @return true if the character is a valid letter.
+     */
     public static boolean isLetter(char c){
-        String ABC = "ABCDEFHIGKLMNOPQRSTUVWXYZ";
+        String ABC = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
         return ABC.indexOf(c) != -1;
     }
 
+    /**
+     * Checks if a character is a valid digit (0-9).
+     *
+     * @param c the character to check.
+     * @return true if the character is a valid digit.
+     */
     public static boolean isDigit(char c){
         String digits = "0123456789";
         return digits.indexOf(c) != -1;
     }
 
+    /**
+     * Finds the closest operation or bracket in the string.
+     *
+     * @param str the string to check.
+     * @param start the starting index to search from.
+     * @return the index of the closest operation or bracket.
+     */
     public static int closestOpOrBrackets(String str,int start){
         int i;
         for (i = start; i < str.length(); i++) {
@@ -416,6 +542,12 @@ public class SCell implements Cell {
         return i;
     }
 
+    /**
+     * Checks if the string represents a valid number.
+     *
+     * @param s the string to check.
+     * @return true if the string represents a number, false otherwise.
+     */
     public boolean isNumber(String s){
         try {
             Double.parseDouble(s);
@@ -425,6 +557,12 @@ public class SCell implements Cell {
         }
     }
 
+    /**
+     * Checks if the string represents text (non-numeric and non-formula).
+     *
+     * @param str the string to check.
+     * @return true if the string represents text.
+     */
     public boolean isText(String str){
         if(!this.isNumber(str) && !this.isForm(str)){
             return true;
@@ -432,6 +570,12 @@ public class SCell implements Cell {
         return false;
     }
 
+    /**
+     * Retrieves all cell references in the given string.
+     *
+     * @param str the string containing cell references.
+     * @return a list of cells that are referenced in the string.
+     */
     public ArrayList<SCell> getReferences(String str) {
         ArrayList<SCell> references = new ArrayList<>();
         if (str == null || str.isEmpty()) {
@@ -460,12 +604,18 @@ public class SCell implements Cell {
         return references;
     }
 
+    /**
+     * Custom exception for form errors.
+     */
     public class ErrorForm extends Exception {
         public ErrorForm(String errorMessage) {
             super(errorMessage);
         }
     }
 
+    /**
+     * Custom exception for cycle errors.
+     */
     public class ErrorCycle extends Exception {
         public ErrorCycle(String errorMessage) {
             super(errorMessage);
