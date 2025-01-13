@@ -15,6 +15,16 @@ class Ex2Tests {
      * Includes cases for valid and invalid formulas.
      */
     @Test
+    void testIsNumber() {
+        SCell cell = new SCell("", new Ex2Sheet());
+        assertTrue(cell.isNumber("1.0"));
+        assertTrue(cell.isNumber("-1.0"));
+        assertFalse(cell.isNumber("1.0a"));
+        assertFalse(cell.isNumber("a1"));
+        assertFalse(cell.isNumber(""));
+    }
+
+    @Test
     void testIsForm() {
         SCell cell = new SCell("Hey", new Ex2Sheet());
         String[] validFormulas = {
@@ -155,4 +165,54 @@ class Ex2Tests {
         assertEquals(Ex2Utils.ERR_CYCLE_FORM, sheet.get(3, 0).getType(), "D0 should detect cycle");
         assertEquals(Ex2Utils.ERR_CYCLE, sheet.value(3, 0), "D0 should show ERR_CYCLE");
     }
+    @Test
+    void testDepthCalculation() {
+        Ex2Sheet sheet = new Ex2Sheet();
+        sheet.set(0, 0, "1");
+        sheet.set(1, 1, "=A0+1");
+        sheet.set(2, 2, "=B1+2");
+        sheet.eval();
+
+        int[][] depth = sheet.depth();
+        assertEquals(0, depth[0][0], "Cell A0 should have depth 0");
+        assertEquals(1, depth[1][1], "Cell B1 should have depth 1");
+        assertEquals(2, depth[2][2], "Cell C2 should have depth 2");
+    }
+    @Test
+    void testUpdateDependentCells() {
+        Ex2Sheet sheet = new Ex2Sheet();
+        sheet.set(0, 0, "1.0");
+        sheet.set(1, 1, "=A0+1");
+        sheet.eval();
+
+        sheet.set(0, 0, "2.0");
+        sheet.eval();
+
+        assertEquals("3.0", sheet.value(1, 1), "Dependent cell B1 was not updated correctly");
+    }
+    @Test
+    void testGetReferences() {
+        SCell cell = new SCell("=A1+B2", new Ex2Sheet());
+        ArrayList<SCell> refs = cell.getReferences(cell.getData());
+        assertEquals(2, refs.size(), "Expected 2 references in the formula");
+    }
+
+    @Test
+    void testSaveAndLoad() throws Exception {
+        Ex2Sheet sheet = new Ex2Sheet();
+        sheet.set(0, 0, "1.0");
+        sheet.set(1, 1, "=A0+1");
+        sheet.set(2, 2, "Hello");
+
+        String fileName = "test_sheet.txt";
+        sheet.save(fileName);
+
+        Ex2Sheet loadedSheet = new Ex2Sheet();
+        loadedSheet.load(fileName);
+
+        assertEquals(sheet.value(0, 0), loadedSheet.value(0, 0), "Loaded value of A0 does not match");
+        assertEquals(sheet.value(1, 1), loadedSheet.value(1, 1), "Loaded value of B1 does not match");
+        assertEquals(sheet.value(2, 2), loadedSheet.value(2, 2), "Loaded value of C2 does not match");
+    }
+
 }

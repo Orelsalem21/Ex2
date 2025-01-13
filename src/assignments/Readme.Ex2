@@ -37,6 +37,10 @@ This project implements a spreadsheet application for managing data, computation
    sheet.load("spreadsheet.txt");
    ```
 
+## Repository
+Find the source code and additional documentation at:
+[GitHub Repository](https://github.com/Orelsalem21/Ex2.git)
+
 ## Testing
 Comprehensive tests are provided in `Ex2Tests.java`, covering valid inputs, invalid inputs, and edge cases for formula evaluation and error detection.
 

@@ -18,8 +18,7 @@ public class SCell implements Cell {
 
     /**
      * Constructs an SCell with the specified data and associated sheet.
-     *
-     * @param s     The initial data to be stored in the cell.
+     * @param s The initial data to be stored in the cell.
      * @param sheet The spreadsheet this cell belongs to.
      */
     public SCell(String s, Ex2Sheet sheet) {
@@ -30,7 +29,6 @@ public class SCell implements Cell {
 
     /**
      * Sets the evaluated value of the cell.
-     *
      * @param v The value to set.
      */
     public void setValue(String v) {
@@ -39,7 +37,6 @@ public class SCell implements Cell {
 
     /**
      * Associates a CellEntry with this cell.
-     *
      * @param e The CellEntry to associate.
      */
     public void setEntry(CellEntry e) {
@@ -49,7 +46,6 @@ public class SCell implements Cell {
 
     /**
      * Returns the string representation of the cell.
-     *
      * @return The raw data stored in the cell.
      */
     @Override
@@ -59,7 +55,6 @@ public class SCell implements Cell {
 
     /**
      * Sets the raw data of the cell.
-     *
      * @param s The data to set.
      */
     @Override
@@ -69,7 +64,6 @@ public class SCell implements Cell {
 
     /**
      * Retrieves the raw data of the cell.
-     *
      * @return The raw data as a string.
      */
     @Override
@@ -79,7 +73,6 @@ public class SCell implements Cell {
 
     /**
      * Gets the type of the cell.
-     *
      * @return The type of the cell as an integer.
      */
     @Override
@@ -89,7 +82,6 @@ public class SCell implements Cell {
 
     /**
      * Sets the type of the cell.
-     *
      * @param t The type to set.
      */
     @Override
@@ -99,7 +91,6 @@ public class SCell implements Cell {
 
     /**
      * Sets the computation order of the cell.
-     *
      * @param t The computation order to set.
      */
     @Override
@@ -109,7 +100,6 @@ public class SCell implements Cell {
 
     /**
      * Retrieves the computation order of the cell.
-     *
      * @return The computation order as an integer.
      */
     @Override
@@ -130,7 +120,6 @@ public class SCell implements Cell {
 
     /**
      * Detects if there is a cyclic dependency starting from this cell.
-     *
      * @param path A list representing the current path of cell references.
      * @return True if a cycle is detected, false otherwise.
      */
@@ -165,7 +154,6 @@ public class SCell implements Cell {
     /**
      * Calculates the computation order of this cell based on its dependencies.
      * The order is determined recursively by analyzing dependent cells.
-     *
      * @return The computation order, or -1 if a cycle is detected, or -2 for errors.
      */
     public int calcOrder() {
@@ -235,7 +223,6 @@ public class SCell implements Cell {
     /**
      * Validates if the given string represents a valid formula.
      * A formula must start with '=' and follow syntax rules for numbers, operators, and cell references.
-     *
      * @param str The string to validate.
      * @return True if the string is a valid formula, false otherwise.
      */
@@ -328,7 +315,7 @@ public class SCell implements Cell {
      *
      * @param expression The formula expression to compute.
      * @return The computed value of the formula.
-     * @throws ErrorForm  If the formula is invalid or cannot be parsed.
+     * @throws ErrorForm If the formula is invalid or cannot be parsed.
      * @throws ErrorCycle If a cyclic dependency is detected.
      */
     public double computeForm(String expression) throws ErrorForm, ErrorCycle {
@@ -438,7 +425,6 @@ public class SCell implements Cell {
 
     /**
      * Checks if a character is a valid operator.
-     *
      * @param c The character to check.
      * @return True if the character is an operator, false otherwise.
      */
@@ -449,7 +435,6 @@ public class SCell implements Cell {
 
     /**
      * Checks if a string contains no valid operators other than a possible leading '-'.
-     *
      * @param str The string to check.
      * @return True if no operators are present, false otherwise.
      */
@@ -474,8 +459,7 @@ public class SCell implements Cell {
 
     /**
      * Finds the index of the closing bracket for a given opening bracket in the string.
-     *
-     * @param str   The string containing brackets.
+     * @param str The string containing brackets.
      * @param index The index of the opening bracket.
      * @return The index of the matching closing bracket, or -1 if unmatched.
      */
@@ -496,7 +480,6 @@ public class SCell implements Cell {
 
     /**
      * Checks if the given character is a valid operator or special character.
-     *
      * @param c The character to check.
      * @return True if the character is valid, false otherwise.
      */
@@ -507,7 +490,6 @@ public class SCell implements Cell {
 
     /**
      * Checks if the given character is an uppercase English letter.
-     *
      * @param c The character to check.
      * @return True if the character is an uppercase letter, false otherwise.
      */
@@ -518,7 +500,6 @@ public class SCell implements Cell {
 
     /**
      * Checks if the given character is a numeric digit.
-     *
      * @param c The character to check.
      * @return True if the character is a digit, false otherwise.
      */
@@ -529,8 +510,7 @@ public class SCell implements Cell {
 
     /**
      * Finds the closest operator or closing bracket starting from a given index.
-     *
-     * @param str   The string to search.
+     * @param str The string to search.
      * @param start The starting index for the search.
      * @return The index of the closest operator or bracket, or the string's length if none found.
      */
@@ -546,7 +526,6 @@ public class SCell implements Cell {
 
     /**
      * Checks if the given string represents a valid number.
-     *
      * @param s The string to check.
      * @return True if the string is a number, false otherwise.
      */
@@ -562,7 +541,6 @@ public class SCell implements Cell {
     /**
      * Determines if the given string represents a valid text cell.
      * A text cell is neither a number nor a valid formula.
-     *
      * @param str The string to check.
      * @return True if the string is text, false otherwise.
      */
@@ -575,7 +553,6 @@ public class SCell implements Cell {
 
     /**
      * Extracts a list of referenced cells from a formula string.
-     *
      * @param str The formula string to analyze.
      * @return A list of referenced SCell objects.
      */

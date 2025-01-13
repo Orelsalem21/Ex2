@@ -304,7 +304,6 @@ public class Ex2Sheet implements Sheet {
                 }
             }
         }
-        System.out.println(Arrays.deepToString(ans));
         return ans;
     }
 
